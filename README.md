@@ -216,3 +216,77 @@ Sem ThemeProvider:
 O Material-UI foi designed para usar a fonte Roboto por padrão. Sem ela, o browser usará uma fonte fallback (como Arial ou Helvetica), o que altera a aparência e quebra o design system do Material Design.
 ##### - Ícones Materiais (Material Icons)
 O MUI usa ícones de texto que requerem a fonte de ícones.
+
+## 4. Criação das pastas do projeto
+
+### EXPLICAÇÃO DAS PASTAS:
+#### 1. assets/ - Arquivos estáticos
+##### - images/ - Imagens e ícones
+##### - styles/ - Estilos globais adicionais
+
+#### 2. components/ - Componentes reutilizáveis
+##### - common/ - Componentes básicos (Button, Card, etc.)
+##### - layout/ - Componentes de layout (Navbar, Sidebar)
+
+#### 3. pages/ - Páginas/views da aplicação
+##### - Cada página tem sua própria pasta
+
+#### 4. hooks/ - Custom hooks
+##### - Hooks personalizados reutilizáveis
+
+#### 5. utils/ - Funções utilitárias
+##### - Helpers, formatações, constantes
+
+#### 6. services/ - Comunicação com API
+##### - Serviços, APIs, axios configurations
+
+#### 7. context/ - Gerenciamento de estado
+##### - Contextos do React para estado global
+
+#### tree -I 'node_modules' (Para ver a estrutura da pasta FRONTEND sem a pasta 'node_modules') 
+```
+@LeoPassos98 ➜ /workspaces/mess-away/FRONTEND (main) $ tree -I 'node_modules'
+.
+├── README.md
+├── eslint.config.js
+├── index.html
+├── package-lock.json
+├── package.json
+├── public
+│   └── vite.svg
+├── src
+│   ├── App.css
+│   ├── App.jsx
+│   ├── assets
+│   │   ├── images
+│   │   │   ├── icons
+│   │   │   └── logos
+│   │   ├── react.svg
+│   │   └── styles
+│   ├── components
+│   │   ├── common
+│   │   │   ├── Button
+│   │   │   ├── Card
+│   │   │   ├── Footer
+│   │   │   └── Header
+│   │   └── layout
+│   │       ├── Layout
+│   │       ├── Navbar
+│   │       └── Sidebar
+│   ├── context
+│   ├── hooks
+│   ├── index.css
+│   ├── main.jsx
+│   ├── pages 
+│   │   ├── Dashboard
+│   │   ├── Home
+│   │   ├── Login
+│   │   └── Register
+│   ├── services
+│   ├── theme
+│   │   └── theme.js
+│   └── utils
+└── vite.config.js
+
+28 directories, 13 files
+```
