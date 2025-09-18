@@ -290,3 +290,24 @@ O MUI usa ícones de texto que requerem a fonte de ícones.
 
 28 directories, 13 files
 ```
+
+### ARQUIVOS DE CONFIGURAÇÃO:
+#### vite.config.js - Configurações do Vite (build, plugins, server)
+
+#### eslint.config.js - Regras de linting e qualidade de código
+
+#### package.json - Dependências e scripts do projeto
+
+#### index.html - Página HTML principal (ponto de entrada)
+
+### ARQUIVOS PRINCIPAIS DA APLICAÇÃO:
+#### src/main.jsx - Ponto de entrada do React (renderiza a aplicação)
+
+#### src/App.jsx - Componente raiz da aplicação
+
+#### src/App.css - Estilos específicos do componente App
+
+#### src/index.css - Estilos globais da aplicação
+
+### ARQUIVO DE TEMA:
+#### src/theme/theme.js - Configurações de design do Material-UI (cores, tipografia, temas)
