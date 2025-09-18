@@ -1,20 +1,38 @@
-# mess-away
+# Mess Away
+
 O Mess Away é um aplicativo inovador projetado para ajudar na organização e gerenciamento de tarefas domésticas.
 
-## 1. Criar o projeto com Vite
+## Índice
 
-Optamos pelo Vite em vez do Create React App porque oferece tempos de build significativamente mais rápidos, melhor experiência de desenvolvimento com HMR mais eficiente, configuração mais moderna e flexível, e menor tamanho do bundle final.
+- [1. Criação do Projeto com Vite](#1-criação-do-projeto-com-vite)
+- [2. Instalação do React Router DOM](#2-instalação-do-react-router-dom)
+- [3. Instalação do Material-UI](#3-instalação-do-material-ui)
+- [4. Estrutura de Pastas](#4-estrutura-de-pastas)
 
-```
+---
+
+## 1. Criação do Projeto com Vite
+
+**Por que Vite?** Optamos pelo Vite em vez do Create React App porque oferece:
+- ⚡ Tempos de build significativamente mais rápidos
+- 🔄 Melhor experiência de desenvolvimento com HMR mais eficiente
+- ⚙️ Configuração mais moderna e flexível
+- 📦 Menor tamanho do bundle final
+
+### Comandos de instalação
+
+```bash
 npm create vite@latest FRONTEND -- --template react
 cd FRONTEND
 npm install
 npm run dev
 ```
 
-###  npm create vite@latest FRONTEND -- --template react
+<details>
+<summary>📋 Log de execução detalhado</summary>
 
-```
+#### Criação do projeto
+```bash
 @LeoPassos98 ➜ /workspaces/mess-away (main) $ npm create vite@latest FRONTEND -- --template react
 │
 ◇  Package name:
@@ -29,9 +47,8 @@ npm run dev
   npm run dev
 ```
 
-###  npm install 
-```
-@LeoPassos98 ➜ /workspaces/mess-away (main) $ cd FRONTEND
+#### Instalação das dependências
+```bash
 @LeoPassos98 ➜ /workspaces/mess-away/FRONTEND (main) $ npm install
 
 added 153 packages, and audited 154 packages in 11s
@@ -41,39 +58,43 @@ added 153 packages, and audited 154 packages in 11s
 
 found 0 vulnerabilities
 ```
-###  npm run dev
-```
+
+#### Execução do servidor de desenvolvimento
+```bash
 @LeoPassos98 ➜ /workspaces/mess-away/FRONTEND (main) $ npm run dev
 
 > frontend@0.0.0 dev
 > vite
-
 
   VITE v7.1.6  ready in 334 ms
 
   ➜  Local:   http://localhost:5173/
   ➜  Network: use --host to expose
   ➜  press h + enter to show help
-  h
-
-  Shortcuts
-  press r + enter to restart the server
-  press u + enter to show server url
-  press o + enter to open in browser
-  press c + enter to clear console
-  press q + enter to quit
 ```
 
-## 2. Instalar React Router DOM para navegação
+</details>
 
-React Router é a biblioteca padrão para roteamento em React, oferecendo sistema de rotas aninhadas, proteção de rotas, navegação programática e histórico de navegação.
+---
 
-```
+## 2. Instalação do React Router DOM
+
+**Por que React Router?** É a biblioteca padrão para roteamento em React, oferecendo:
+- 🗂️ Sistema de rotas aninhadas
+- 🔒 Proteção de rotas
+- 🧭 Navegação programática
+- 📜 Histórico de navegação
+
+### Comando de instalação
+
+```bash
 npm install react-router-dom
 ```
-### npm install react-router-dom
 
-```
+<details>
+<summary>📋 Log de execução</summary>
+
+```bash
 @LeoPassos98 ➜ /workspaces/mess-away/FRONTEND (main) $ npm install react-router-dom
 
 added 4 packages, and audited 158 packages in 1s
@@ -84,18 +105,31 @@ added 4 packages, and audited 158 packages in 1s
 found 0 vulnerabilities
 ```
 
-## 3. Instalar Material-UI e dependências
+</details>
 
-Material-UI foi escolhido porque oferece um sistema completo de componentes prontos seguindo o Material Design, acelera o desenvolvimento com elementos de UI previamente construídos e testados, garante consistência visual e experiência do usuário padronizada, simplifica a implementação de temas e customizações, e proporciona documentação robusta com ampla comunidade de suporte.
+---
 
-```
+## 3. Instalação do Material-UI
+
+**Por que Material-UI?** Foi escolhido porque oferece:
+- 🎨 Sistema completo de componentes seguindo o Material Design
+- ⚡ Acelera o desenvolvimento com componentes prontos e testados
+- 🎯 Consistência visual e experiência padronizada
+- 🛠️ Implementação simplificada de temas e customizações
+- 📚 Documentação robusta com ampla comunidade
+
+### 3.1 Instalação das dependências
+
+```bash
 npm install @mui/material @emotion/react @emotion/styled
-npm install @mui/icons-material 
+npm install @mui/icons-material
 ```
 
+<details>
+<summary>📋 Logs de execução</summary>
 
-### npm install @mui/material @emotion/react @emotion/styled
-```
+#### Material-UI Core
+```bash
 @LeoPassos98 ➜ /workspaces/mess-away/FRONTEND (main) $ npm install @mui/material @emotion/react @emotion/styled
 
 added 55 packages, and audited 213 packages in 8s
@@ -106,8 +140,8 @@ added 55 packages, and audited 213 packages in 8s
 found 0 vulnerabilities
 ```
 
-### npm install @mui/icons-material
-```
+#### Ícones Material-UI
+```bash
 @LeoPassos98 ➜ /workspaces/mess-away/FRONTEND (main) $ npm install @mui/icons-material 
 
 added 1 package, and audited 214 packages in 41s
@@ -118,9 +152,13 @@ added 1 package, and audited 214 packages in 41s
 found 0 vulnerabilities
 ```
 
-### 3.1 Configurar o tema
-#### Crie o arquivo src/theme/theme.js
-```
+</details>
+
+### 3.2 Configuração do tema
+
+Crie o arquivo `src/theme/theme.js`:
+
+```javascript
 // src/theme/theme.js
 import { createTheme } from '@mui/material/styles';
 
@@ -145,9 +183,11 @@ const theme = createTheme({
 export default theme;
 ```
 
-### 3.2 Configurar o Provider do tema
-#### Atualize o src/main.jsx
-```
+### 3.3 Configuração do Provider do tema
+
+Atualize o arquivo `src/main.jsx`:
+
+```javascript
 // src/main.jsx
 import React from 'react'
 import ReactDOM from 'react-dom/client'
@@ -166,27 +206,37 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   </React.StrictMode>,
 )
 ```
-#### O QUE É O PROVIDER DO TEMA?
-##### - Distribuidor de temas
-O ThemeProvider é um componente do Material-UI que funciona como um "distribuidor de temas" para toda a aplicação. Ele usa o conceito de React Context para disponibilizar o tema para todos os componentes filhos.
-#### COMO O PROVIDER FUNCIONA?
-##### - Provider injeta o tema via React Context. Todos componentes filhos acessam as configurações automaticamente.
-Sem ThemeProvider:
- ```
- // Cada componente precisa receber cores manualmente
+
+<details>
+<summary>🤔 O que é o Provider do tema?</summary>
+
+#### 📡 Distribuidor de temas
+O `ThemeProvider` é um componente do Material-UI que funciona como um "distribuidor de temas" para toda a aplicação. Ele usa o conceito de React Context para disponibilizar o tema para todos os componentes filhos.
+
+#### ⚙️ Como funciona?
+O Provider injeta o tema via React Context. Todos os componentes filhos acessam as configurações automaticamente.
+
+**Sem ThemeProvider:**
+```jsx
+// Cada componente precisa receber cores manualmente
 <Button color="#1976d2">Login</Button>
 <Card backgroundColor="#f5f5f5">Conteúdo</Card>
- ```
- Com ThemeProvider:
 ```
+
+**Com ThemeProvider:**
+```jsx
 // Componentes automaticamente usam o tema
 <Button color="primary">Login</Button> // → #1976d2
 <Card>Conteúdo</Card> // → background do tema
 ```
 
-### 3.3 Atualizar o arquivo HTML
-#### Adicione a fonte Roboto no index.html
-```
+</details>
+
+### 3.4 Atualização do arquivo HTML
+
+Adicione as fontes Roboto e Material Icons no `index.html`:
+
+```html
 <!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
@@ -211,103 +261,94 @@ Sem ThemeProvider:
 </html>
 ```
 
-#### POR QUAL MOTIVO TENHO QUE ATUALIZAR O INDEX.HTML?
-##### - Fontes do Google Fonts (Roboto)
-O Material-UI foi designed para usar a fonte Roboto por padrão. Sem ela, o browser usará uma fonte fallback (como Arial ou Helvetica), o que altera a aparência e quebra o design system do Material Design.
-##### - Ícones Materiais (Material Icons)
-O MUI usa ícones de texto que requerem a fonte de ícones.
+<details>
+<summary>🤔 Por que atualizar o index.html?</summary>
 
-## 4. Criação das pastas do projeto
+#### 🔤 Fontes do Google Fonts (Roboto)
+O Material-UI foi projetado para usar a fonte Roboto por padrão. Sem ela, o browser usará uma fonte fallback (como Arial ou Helvetica), o que altera a aparência e quebra o design system do Material Design.
 
-### EXPLICAÇÃO DAS PASTAS:
-#### 1. assets/ - Arquivos estáticos
-##### - images/ - Imagens e ícones
-##### - styles/ - Estilos globais adicionais
+#### 🎯 Ícones Materiais (Material Icons)
+O MUI usa ícones de texto que requerem a fonte de ícones específica.
 
-#### 2. components/ - Componentes reutilizáveis
-##### - common/ - Componentes básicos (Button, Card, etc.)
-##### - layout/ - Componentes de layout (Navbar, Sidebar)
+</details>
 
-#### 3. pages/ - Páginas/views da aplicação
-##### - Cada página tem sua própria pasta
+---
 
-#### 4. hooks/ - Custom hooks
-##### - Hooks personalizados reutilizáveis
+## 4. Estrutura de Pastas
 
-#### 5. utils/ - Funções utilitárias
-##### - Helpers, formatações, constantes
+### 📁 Organização do projeto
 
-#### 6. services/ - Comunicação com API
-##### - Serviços, APIs, axios configurations
-
-#### 7. context/ - Gerenciamento de estado
-##### - Contextos do React para estado global
-
-#### tree -I 'node_modules' (Para ver a estrutura da pasta FRONTEND sem a pasta 'node_modules') 
 ```
-@LeoPassos98 ➜ /workspaces/mess-away/FRONTEND (main) $ tree -I 'node_modules'
-.
-├── README.md
-├── eslint.config.js
-├── index.html
-├── package-lock.json
-├── package.json
-├── public
-│   └── vite.svg
-├── src
-│   ├── App.css
-│   ├── App.jsx
-│   ├── assets
-│   │   ├── images
-│   │   │   ├── icons
-│   │   │   └── logos
-│   │   ├── react.svg
-│   │   └── styles
-│   ├── components
-│   │   ├── common
-│   │   │   ├── Button
-│   │   │   ├── Card
-│   │   │   ├── Footer
-│   │   │   └── Header
-│   │   └── layout
-│   │       ├── Layout
-│   │       ├── Navbar
-│   │       └── Sidebar
-│   ├── context
-│   ├── hooks
-│   ├── index.css
-│   ├── main.jsx
-│   ├── pages 
-│   │   ├── Dashboard
-│   │   ├── Home
-│   │   ├── Login
-│   │   └── Register
-│   ├── services
-│   ├── theme
-│   │   └── theme.js
-│   └── utils
-└── vite.config.js
-
-28 directories, 13 files
+FRONTEND/
+├── 📄 README.md
+├── ⚙️ eslint.config.js
+├── 🌐 index.html
+├── 📦 package.json
+├── ⚙️ vite.config.js
+├── public/
+│   └── 🖼️ vite.svg
+└── src/
+    ├── 🎨 App.css
+    ├── ⚛️ App.jsx
+    ├── 🎨 index.css
+    ├── ⚛️ main.jsx
+    ├── 📁 assets/
+    │   ├── 🖼️ images/
+    │   │   ├── 🎯 icons/
+    │   │   └── 🏷️ logos/
+    │   └── 🎨 styles/
+    ├── 📁 components/
+    │   ├── 🔧 common/
+    │   │   ├── Button/
+    │   │   ├── Card/
+    │   │   ├── Footer/
+    │   │   └── Header/
+    │   └── 🏗️ layout/
+    │       ├── Layout/
+    │       ├── Navbar/
+    │       └── Sidebar/
+    ├── 📁 context/
+    ├── 📁 hooks/
+    ├── 📁 pages/
+    │   ├── Dashboard/
+    │   ├── Home/
+    │   ├── Login/
+    │   └── Register/
+    ├── 📁 services/
+    ├── 📁 theme/
+    │   └── theme.js
+    └── 📁 utils/
 ```
 
-### ARQUIVOS DE CONFIGURAÇÃO:
-#### vite.config.js - Configurações do Vite (build, plugins, server)
+### 📋 Explicação das pastas
 
-#### eslint.config.js - Regras de linting e qualidade de código
+| Pasta | Descrição | Conteúdo |
+|-------|-----------|----------|
+| **📁 assets/** | Arquivos estáticos | Imagens, ícones, estilos globais |
+| **📁 components/** | Componentes reutilizáveis | Componentes básicos e de layout |
+| **📁 pages/** | Páginas/views da aplicação | Cada página tem sua própria pasta |
+| **📁 hooks/** | Custom hooks | Hooks personalizados reutilizáveis |
+| **📁 utils/** | Funções utilitárias | Helpers, formatações, constantes |
+| **📁 services/** | Comunicação com API | Serviços, APIs, configurações axios |
+| **📁 context/** | Gerenciamento de estado | Contextos do React para estado global |
 
-#### package.json - Dependências e scripts do projeto
+### 📂 Arquivos de configuração
 
-#### index.html - Página HTML principal (ponto de entrada)
+| Arquivo | Descrição |
+|---------|-----------|
+| **⚙️ vite.config.js** | Configurações do Vite (build, plugins, server) |
+| **⚙️ eslint.config.js** | Regras de linting e qualidade de código |
+| **📦 package.json** | Dependências e scripts do projeto |
+| **🌐 index.html** | Página HTML principal (ponto de entrada) |
 
-### ARQUIVOS PRINCIPAIS DA APLICAÇÃO:
-#### src/main.jsx - Ponto de entrada do React (renderiza a aplicação)
+### 📂 Arquivos principais da aplicação
 
-#### src/App.jsx - Componente raiz da aplicação
+| Arquivo | Descrição |
+|---------|-----------|
+| **⚛️ src/main.jsx** | Ponto de entrada do React (renderiza a aplicação) |
+| **⚛️ src/App.jsx** | Componente raiz da aplicação |
+| **🎨 src/App.css** | Estilos específicos do componente App |
+| **🎨 src/index.css** | Estilos globais da aplicação |
+| **🎨 src/theme/theme.js** | Configurações de design do Material-UI |
 
-#### src/App.css - Estilos específicos do componente App
-
-#### src/index.css - Estilos globais da aplicação
-
-### ARQUIVO DE TEMA:
-#### src/theme/theme.js - Configurações de design do Material-UI (cores, tipografia, temas)
+---
