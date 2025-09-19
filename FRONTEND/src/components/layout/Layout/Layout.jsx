@@ -1,15 +1,17 @@
-// src/components/layout/Layout/Layout.jsx
 import { Box } from '@mui/material'
+import { Outlet } from 'react-router-dom'
+import Navbar from '../Navbar'
+import Footer from '../Footer'
 
 function Layout() {
   return (
     <Box sx={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      minHeight: '100vh',
-      width: '100%',
-      margin: 0,
-      padding: 0
+      display: 'flex',           // Layout flexbox
+      flexDirection: 'column',   // Elementos em coluna (vertical)
+      minHeight: '100vh',        // Altura mínima = altura da tela
+      width: '100%',             // Largura total
+      margin: 0,                 // Sem margens
+      padding: 0                 // Sem padding
     }}>
       <Navbar />
       <Box component="main" sx={{ flex: 1, width: '100%' }}>
@@ -19,3 +21,5 @@ function Layout() {
     </Box>
   )
 }
+
+export default Layout
