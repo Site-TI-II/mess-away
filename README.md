@@ -9,6 +9,7 @@ O Mess Away é um aplicativo inovador projetado para ajudar na organização e g
 - [3. Instalação do Material-UI](#3-instalação-do-material-ui)
 - [4. Estrutura de Pastas](#4-estrutura-de-pastas)
 - [5. Hierarquia de Renderização da Aplicação](#5-hierarquia-de-renderização-da-aplicação)
+- [6. Guia de Edição - Onde Modificar Cada Coisa](#6-guia-de-edição---onde-modificar-cada-coisa)
 
 ---
 
@@ -486,6 +487,149 @@ graph TD
     style O fill:#fce4ec
     style P fill:#f3e5f5
 ```
+</details>
+
+---
+
+## 6. Guia de Edição - Onde Modificar Cada Coisa
+
+### 🎯 **Guia Rápido de Customização**
+
+Esta seção é um **mapa completo** para encontrar e modificar qualquer aspecto visual ou funcional da aplicação. Use-a como referência rápida durante o desenvolvimento.
+
+<details>
+<summary>🎨 <strong>1. CORES E TEMA PRINCIPAL</strong></summary>
+
+**📁 Arquivo:** `src/theme/theme.js`
+
+```javascript
+export default createTheme({
+  palette: {
+    primary: { main: '#1976d2' },    // Cor primária (botões, header)
+    secondary: { main: '#dc004e' },  // Cor secundária
+    background: { default: '#f5f5f5' } // Cor de fundo
+  }
+})
+```
+
+</details>
+
+<details>
+<summary>📐 <strong>2. ESPAÇAMENTOS E TIPOGRAFIA</strong></summary>
+
+**📁 Arquivo:** `src/theme/theme.js`
+
+```javascript
+export default createTheme({
+  spacing: 8, // Base unit (8px) - spacing(2) = 16px
+  typography: {
+    fontFamily: '"Roboto", sans-serif',
+    h1: { fontSize: '2.5rem' },     // Títulos grandes
+    h2: { fontSize: '2rem' },       // Títulos médios
+    body1: { fontSize: '1rem' }     // Texto normal
+  }
+})
+```
+
+</details>
+
+<details>
+<summary>🔝 <strong>3. HEADER (NAVBAR)</strong></summary>
+
+**📁 Arquivo:** `src/components/layout/Navbar/Navbar.jsx`
+
+```jsx
+// Modifique aqui:
+<AppBar sx={{ 
+  background: 'linear-gradient(45deg, #1976d2 30%, #42a5f5 90%)',
+  boxShadow: 'none' // Remove sombra
+}}>
+```
+
+</details>
+
+<details>
+<summary>📱 <strong>4. LAYOUT PRINCIPAL</strong></summary>
+
+**📁 Arquivo:** `src/components/layout/Layout/Layout.jsx`
+
+```jsx
+// Estrutura principal:
+<Box sx={{ 
+  minHeight: '100vh',
+  background: theme.palette.background.default // Cor do tema
+}}>
+```
+
+</details>
+
+<details>
+<summary>🖥️ <strong>5. CONTEÚDO DAS PÁGINAS</strong></summary>
+
+**📁 Arquivo:** `src/pages/Home/Home.jsx` (e outras páginas)
+
+```jsx
+// Container de página:
+<Box sx={{ 
+  maxWidth: '1200px',      // Largura máxima
+  margin: '0 auto',        // Centraliza
+  padding: { xs: 2, md: 3 } // Responsivo: 16px mobile, 24px desktop
+}}>
+  Seu conteúdo aqui
+</Box>
+```
+
+</details>
+
+<details>
+<summary>🎪 <strong>6. COMPONENTES INDIVIDUAIS</strong></summary>
+
+**📁 Arquivo:** `src/components/common/Card/Card.jsx`
+
+```jsx
+// Estilização por componente:
+<Box sx={{
+  border: '1px solid',
+  borderColor: 'grey.300',
+  borderRadius: 2,
+  p: 2 // padding: 16px
+}}>
+```
+
+</details>
+
+<details>
+<summary>📱 <strong>7. RESPONSIVIDADE</strong></summary>
+
+Use o sistema de breakpoints do MUI:
+
+```jsx
+<Box sx={{ 
+  padding: { 
+    xs: 1, // mobile: 8px
+    sm: 2, // tablet: 16px  
+    md: 3  // desktop: 24px
+  },
+  fontSize: { xs: '14px', md: '16px' }
+}}>
+```
+
+</details>
+
+<details>
+<summary>🎯 <strong>8. ESTILOS GLOBAIS PERSONALIZADOS</strong></summary>
+
+**📁 Arquivo:** `src/index.css`
+
+```css
+/* Classes utilitárias globais */
+.text-center { text-align: center; }
+.mt-1 { margin-top: 8px; }
+.mt-2 { margin-top: 16px; }
+.p-1 { padding: 8px; }
+.p-2 { padding: 16px; }
+```
+
 </details>
 
 ---
