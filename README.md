@@ -414,25 +414,6 @@ A hierarquia deve ser mantida nesta ordem exata para garantir que:
 - ✅ **Os estilos sejam consistentes** entre todas as páginas
 - ✅ **A aplicação renderize sem erros** em qualquer navegador
 
-### 📊 Fluxo Simplificado (Do ReactDOM ao DOM)
-
-```mermaid
-graph TD
-    A[ReactDOM.createRoot] --> B[React.StrictMode]
-    B --> C[BrowserRouter]
-    C --> D[ThemeProvider]
-    D --> E[CssBaseline]
-    E --> F[App Component]
-    F --> G[Routes + Route]
-    G --> H[Layout Component]
-    H --> I[Outlet]
-    I --> J[Home/Login/Dashboard]
-    J --> K[DOM - Tela do Navegador 🎉]
-    
-    style A fill:#e1f5fe
-    style K fill:#c8e6c9
-    style F fill:#fff3e0
-```
 
 ### 🔍 Fluxo Detalhado Step-by-Step
 
@@ -477,9 +458,34 @@ Cada camada depende da anterior:
   </App>
 </ThemeProvider>
 ```
+### 📊 Fluxo Simplificado (Do ReactDOM ao DOM)
 
+```mermaid
+graph TD
+    A[ReactDOM.render] --> B[React.StrictMode]
+    B --> C[BrowserRouter]
+    C --> D[ThemeProvider]
+    D --> E[CssBaseline]
+    E --> F[App Component]
+    F --> G[Routes]
+    G --> H[Layout Component]
+    H --> I[Outlet]
+    I --> J[Páginas]
+    
+    J --> K[Home]
+    J --> L[Login]
+    J --> M[Register]
+    J --> N[Dashboard]
+    
+    H --> O[Navbar]
+    H --> P[Footer]
+    
+    style A fill:#e1f5fe
+    style F fill:#fff3e0
+    style J fill:#e8f5e8
+    style O fill:#fce4ec
+    style P fill:#f3e5f5
+```
 </details>
-
-Esta estrutura garante **consistência**, **manutenibilidade** e **escalabilidade** do projeto! 🚀
 
 ---
