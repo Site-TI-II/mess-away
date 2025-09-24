@@ -1,42 +1,39 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* =============================================================================
+   APP.CSS - Reset CSS e Configurações Globais
+   =============================================================================
+   Este arquivo contém resets CSS essenciais para garantir consistência
+   entre navegadores e uma base sólida para o Material-UI.
+*/
+
+/* -----------------------------------------------------------------------------
+   RESET GLOBAL - Box Model
+   -----------------------------------------------------------------------------
+   Aplica box-sizing: border-box a TODOS os elementos da página.
+   
+   Sem border-box: width = conteúdo apenas
+   Com border-box: width = conteúdo + padding + border
+   
+   Isso torna os cálculos de largura mais previsíveis e facilita layouts.
+*/
+* {
+  box-sizing: border-box; 
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+/* -----------------------------------------------------------------------------
+   RESET GLOBAL - Elementos Raiz
+   -----------------------------------------------------------------------------
+   Remove as margens e paddings padrão dos navegadores nos elementos raiz.
+   
+   Por padrão, navegadores aplicam:
+   - body { margin: 8px; } 
+   - Alguns elementos têm padding padrão
+   
+   Removendo isso, garantimos que:
+   - O layout ocupa 100% da tela
+   - Não há espaços indesejados nas bordas
+   - Base limpa para o Material-UI
+*/
+html, body {
+  margin: 0;                /* Remove margem padrão do navegador (8px) */
+  padding: 0;               /* Remove padding padrão (caso exista) */
 }
