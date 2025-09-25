@@ -2,7 +2,6 @@ import { Box, Typography, Button, Container, Stack } from '@mui/material'
 import { Home, GitHub } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
 import fotoMenu from "../../../assets/images/homePicture.jpg";
-
 /**
  * HeroSection - Seção principal de apresentação da landing page
  * 
@@ -70,32 +69,32 @@ function HeroSection() {
 
         {/* Container para placeholder do mockup do app */}
         <Box sx={{ mb: 6 }}>
-          <Box sx={{
-            // Dimensões responsivas para o mockup
-            width: { xs: 200, md: 300 },
-            height: { xs: 200, md: 300 },
-            // Usando overlay do theme
-            bgcolor: theme.palette.overlay.light,
-            borderRadius: 2,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            mx: 'auto',    // Centraliza horizontalmente
-            mb: 4
-          }}>
-            {/* Ícone de casa como placeholder */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mx: 'auto',
+              mb: 4,
+              bgcolor: theme.palette.overlay.light,
+              borderRadius: 2,
+              p: { xs: 1, md: 1.5 }, // padding para dar respiro à imagem
+              maxWidth: 420,
+              width: '100%'
+            }}
+          >
             <img
-              src={fotoGrande}
+              src={fotoMenu}
               alt="Foto Mess Away"
               style={{
                 width: '100%',
-                maxWidth: '400px', // ou o tamanho que você quiser
+                maxWidth: '400px',
                 height: 'auto',
-                borderRadius: '12px', // opcional: deixa com cantos arredondados
-                opacity: 0.9
+                borderRadius: '12px',
+                opacity: 0.9,
+                boxShadow: '0 4px 24px rgba(0,0,0,0.10)'
               }}
             />
-
           </Box>
         </Box>
 
