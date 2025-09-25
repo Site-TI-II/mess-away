@@ -37,7 +37,8 @@ function Navbar() {
         margin: '0 auto',
         px: { xs: 2, sm: 3, md: 4, lg: 2 }
       }}>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+        
+        <Typography variant="h3" component="div" sx={{ flexGrow: 1 }}>
           🏠 Mess Away
         </Typography>
         
@@ -53,6 +54,8 @@ function Navbar() {
               {item.text}
             </Button>
           ))}
+          <Button color="inherit" component={Link} to="/Tarefas">Tarefas</Button>
+        
         </Box>
 
         {/* Menu Mobile - mostra só no mobile */}
