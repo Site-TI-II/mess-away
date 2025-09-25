@@ -1,5 +1,5 @@
 import React from "react";
-import "./App.css"; // seu CSS compartilhado
+import "../../App.css";
 
 function Login() {
   return (
