@@ -1,6 +1,7 @@
 import { Box, Typography, Button, Container, Stack } from '@mui/material'
 import { Home, GitHub } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
+import fotoMenu from "../../../assets/images/homePicture.jpg";
 
 /**
  * HeroSection - Seção principal de apresentação da landing page
@@ -83,10 +84,18 @@ function HeroSection() {
             mb: 4
           }}>
             {/* Ícone de casa como placeholder */}
-            <Home sx={{
-              fontSize: { xs: 80, md: 120 },
-              opacity: 0.7
-            }} />
+            <img
+              src={fotoGrande}
+              alt="Foto Mess Away"
+              style={{
+                width: '100%',
+                maxWidth: '400px', // ou o tamanho que você quiser
+                height: 'auto',
+                borderRadius: '12px', // opcional: deixa com cantos arredondados
+                opacity: 0.9
+              }}
+            />
+
           </Box>
         </Box>
 
@@ -141,4 +150,4 @@ function HeroSection() {
   )
 }
 
-export default HeroSection
+export default HeroSection 
