@@ -47,12 +47,16 @@ html, body {
 }
 
 /* Container principal do login */
-.page.login .login-container {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.page.login .login-card {
+  background: #9c46c0;
+  padding: 50px;                 
+  border-radius: 50% / 35%;      
+  text-align: center;
+  color: white;
+  width: 450px;                  
+  min-height: 420px;             
   position: relative;
+  z-index: 2;
 }
 
 /* Cartão de login */
