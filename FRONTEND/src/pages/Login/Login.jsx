@@ -23,9 +23,6 @@ function Login() {
         <div className="circle pink"></div>
         <div className="circle teal"></div>
       </div>
-
-      {/* RODAPÉ */}
-      <footer className="footer">© 2025 Mess Away</footer>
     </div>
   );
 }
