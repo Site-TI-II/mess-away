@@ -37,3 +37,110 @@ html, body {
   margin: 0;                /* Remove margem padrão do navegador (8px) */
   padding: 0;               /* Remove padding padrão (caso exista) */
 }
+
+/* ===== ESTILOS ESPECÍFICOS DA PÁGINA LOGIN ===== */
+.page.login {
+  background: #f7f7f7;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Container principal do login */
+.page.login .login-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+/* Cartão de login */
+.page.login .login-card {
+  background: #9c46c0;
+  padding: 40px;
+  border-radius: 50% / 40%;
+  text-align: center;
+  color: white;
+  width: 350px;
+  position: relative;
+  z-index: 2;
+}
+
+.page.login .login-card h2 {
+  margin-bottom: 20px;
+  color: #2d2d2d;
+}
+
+.page.login .login-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.page.login .login-card input {
+  padding: 10px;
+  border: none;
+  border-radius: 20px;
+  outline: none;
+}
+
+.page.login .login-card button {
+  padding: 10px;
+  background: #ff8c42;
+  border: none;
+  border-radius: 20px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.page.login .login-card button:hover {
+  background: #ff6b00;
+}
+
+.page.login .links {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9em;
+}
+
+.page.login .links a {
+  color: white;
+  text-decoration: none;
+}
+
+.page.login .links a:hover {
+  text-decoration: underline;
+}
+
+/* Bolinhas decorativas */
+.page.login .circle {
+  position: absolute;
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  z-index: 1;
+}
+
+.page.login .circle.pink {
+  background: #ff6fb7;
+  bottom: 80px;
+  left: 200px;
+}
+
+.page.login .circle.teal {
+  background: #3cbeb3;
+  top: 100px;
+  right: 200px;
+}
+
+/* RODAPÉ */
+.footer {
+  text-align: center;
+  padding: 10px;
+  font-size: 0.8em;
+  color: #333;
+}

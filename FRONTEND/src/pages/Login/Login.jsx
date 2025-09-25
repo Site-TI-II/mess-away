@@ -1,21 +1,33 @@
+import React from "react";
+import "./App.css"; // seu CSS compartilhado
+
 function Login() {
   return (
-    <div>
-      <h2>🔐 Login</h2>
-      <form style={{ maxWidth: '300px', margin: '0 auto' }}>
-        <div style={{ marginBottom: '1rem' }}>
-          <label>Email: </label>
-          <input type="email" style={{ padding: '0.5rem', width: '100%' }} />
+    <div className="page login">
+      {/* CONTEÚDO LOGIN */}
+      <div className="login-container">
+        <div className="login-card">
+          <h2>Seja Bem Vindo!</h2>
+          <form>
+            <input type="text" placeholder="Login" />
+            <input type="password" placeholder="Senha" />
+            <button type="submit">Entrar</button>
+          </form>
+          <div className="links">
+            <a href="/register">Cadastre-se</a>
+            <a href="/forgot">Esqueceu sua senha?</a>
+          </div>
         </div>
-        <div style={{ marginBottom: '1rem' }}>
-          <label>Senha: </label>
-          <input type="password" style={{ padding: '0.5rem', width: '100%' }} />
-        </div>
-        <button type="submit" style={{ padding: '0.5rem 1rem', background: '#1976d2', color: 'white', border: 'none' }}>
-          Entrar
-        </button>
-      </form>
+
+        {/* bolinhas decorativas */}
+        <div className="circle pink"></div>
+        <div className="circle teal"></div>
+      </div>
+
+      {/* RODAPÉ */}
+      <footer className="footer">© 2025 Mess Away</footer>
     </div>
-  )
+  );
 }
-export default Login
+
+export default Login;
