@@ -236,7 +236,7 @@ O Provider injeta o tema via React Context. Todos os componentes filhos acessam 
 
 ### 3.4 Atualização do arquivo HTML
 
-Adicione as fontes Roboto e Material Icons no `index.html`:
+Adicione as fontes Roboto e Material Icons no `index.html`: 
 
 ```html
 <!-- index.html -->

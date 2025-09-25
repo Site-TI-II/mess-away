@@ -1,19 +1,53 @@
-/* src/index.css */
+/* =============================================================================
+   INDEX.CSS - Estilos Globais e Configuração Base
+   =============================================================================
+   Este arquivo define a base CSS da aplicação React, configurando elementos
+   fundamentais como altura total, fonte padrão e comportamento do container raiz.
+   Complementa o Material-UI fornecendo configurações específicas do projeto.
+*/
+
+/* -----------------------------------------------------------------------------
+   RESET UNIVERSAL - Todos os Elementos
+   -----------------------------------------------------------------------------
+   Aplica reset completo a todos os elementos HTML da página.
+   Garante comportamento consistente independente do navegador.
+*/
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+  margin: 0;                /* Remove margem padrão de todos os elementos */
+  padding: 0;               /* Remove padding padrão de todos os elementos */
+  box-sizing: border-box;   /* Inclui padding e border no cálculo da largura */
 }
 
+/* -----------------------------------------------------------------------------
+   CONFIGURAÇÃO RAIZ - Altura Total e Fonte
+   -----------------------------------------------------------------------------
+   Configura os elementos fundamentais para ocupar 100% da viewport.
+   
+   html: Elemento raiz do documento
+   body: Corpo da página
+   #root: Container onde o React renderiza a aplicação
+   
+   Todos precisam ter height: 100% para layouts full-screen funcionarem.
+*/
 html, body, #root {
-  height: 100%;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  font-family: 'Roboto', sans-serif;
+  height: 100%;             /* Altura total da viewport (100vh) */
+  width: 100%;              /* Largura total da viewport (100vw) */
+  margin: 0;                /* Sem margens (redundante, mas garante) */
+  padding: 0;               /* Sem padding (redundante, mas garante) */
+  font-family: 'Roboto', sans-serif;  /* Fonte padrão do Material Design */
 }
 
+/* -----------------------------------------------------------------------------
+   CONTAINER REACT - Configuração do #root
+   -----------------------------------------------------------------------------
+   O elemento #root é onde toda a aplicação React é montada.
+   Configurado como flex container para permitir layouts flexíveis.
+   
+   Isso é especialmente importante para o Layout.jsx que usa:
+   - minHeight: '100vh'
+   - flexDirection: 'column'
+*/
 #root {
-  display: flex;
-  flex-direction: column;
+  display: flex;            /* Transforma #root em flex container */
+  flex-direction: column;   /* Organiza filhos em coluna (vertical) */
 }
