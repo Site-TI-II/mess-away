@@ -1,6 +1,7 @@
-import { Box, Typography, Container, Grid, Card } from '@mui/material'
+import { Box, Typography, Container, Grid } from '@mui/material'
 import { Schedule, TrendingUp, WarningAmber } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
+import { SectionCard } from '../../../components/common/Card'
 
 /**
  * ProblemSection - Seção que apresenta os problemas que o app resolve
@@ -44,140 +45,35 @@ function ProblemSection() {
         <Grid container spacing={{ xs: 3, md: 4 }} sx={{ justifyContent: 'center' }}>
           {/* Card 1 - Dificuldade de Organização */}
           <Grid item xs={12} sm={6} md={4}>
-            <Card sx={{ 
-              height: { xs: 'auto', md: '320px' }, // Altura fixa no desktop
-              minHeight: '280px',   // Altura mínima para consistência
-              maxWidth: '350px',    // Largura máxima para não ficar muito largo
-              mx: 'auto',          // Centraliza o card horizontalmente
-              display: 'flex',     
-              flexDirection: 'column', 
-              textAlign: 'center', 
-              p: { xs: 2.5, md: 3 }, // Padding responsivo
-              // Efeitos visuais modernos
-              borderRadius: 3,     
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)', 
-              bgcolor: theme.palette.glass.white, // Usando glass do theme
-              backdropFilter: 'blur(10px)', 
-              transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-              '&:hover': {
-                transform: 'translateY(-8px)', 
-                boxShadow: '0 16px 48px rgba(0, 0, 0, 0.15)'
-              }
-            }}>
-              {/* Ícone com cor primária (azul) */}
-              <Schedule sx={{ 
-                fontSize: { xs: 50, md: 60 }, // Tamanho responsivo do ícone
-                color: 'primary.main',  // Azul do tema
-                mb: 2 
-              }} />
-              <Typography variant="h6" sx={{ 
-                mb: 2, 
-                fontWeight: 'bold',
-                fontSize: { xs: '1.1rem', md: '1.25rem' } // Tamanho responsivo
-              }}>
-                Dificuldade de Organização
-              </Typography>
-              <Typography variant="body1" sx={{ 
-                flexGrow: 1,
-                fontSize: { xs: '0.9rem', md: '1rem' }, // Tamanho responsivo
-                lineHeight: 1.6, // Melhor espaçamento entre linhas
-                color: 'text.secondary'
-              }}>
-                Dificuldade em organizar e gerenciar tarefas cotidianas de forma eficiente
-              </Typography>
-            </Card>
+            <SectionCard 
+              icon={Schedule}
+              title="Dificuldade de Organização"
+              description="Dificuldade em organizar e gerenciar tarefas cotidianas de forma eficiente"
+              iconColor="primary.main"
+              variant="problem"
+            />
           </Grid>
 
           {/* Card 2 - Rotinas Agitadas */}
           <Grid item xs={12} sm={6} md={4}>
-            <Card sx={{ 
-              height: { xs: 'auto', md: '320px' }, 
-              minHeight: '280px',   
-              maxWidth: '350px',    
-              mx: 'auto',          
-              display: 'flex',     
-              flexDirection: 'column', 
-              textAlign: 'center', 
-              p: { xs: 2.5, md: 3 }, 
-              // Efeitos visuais modernos
-              borderRadius: 3,
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-              bgcolor: theme.palette.glass.white, // Usando glass do theme
-              backdropFilter: 'blur(10px)',
-              transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-              '&:hover': {
-                transform: 'translateY(-8px)',
-                boxShadow: '0 16px 48px rgba(0, 0, 0, 0.15)'
-              }
-            }}>
-              {/* Ícone com cor de warning (laranja) */}
-              <TrendingUp sx={{ 
-                fontSize: { xs: 50, md: 60 }, 
-                color: 'warning.main', 
-                mb: 2 
-              }} />
-              <Typography variant="h6" sx={{ 
-                mb: 2, 
-                fontWeight: 'bold',
-                fontSize: { xs: '1.1rem', md: '1.25rem' }
-              }}>
-                Rotinas Agitadas
-              </Typography>
-              <Typography variant="body1" sx={{ 
-                flexGrow: 1,
-                fontSize: { xs: '0.9rem', md: '1rem' },
-                lineHeight: 1.6,
-                color: 'text.secondary'
-              }}>
-                No meio de trabalho e estudo, as tarefas de casa são negligenciadas e se tornam maiores
-              </Typography>
-            </Card>
+            <SectionCard 
+              icon={TrendingUp}
+              title="Rotinas Agitadas"
+              description="No meio de trabalho e estudo, as tarefas de casa são negligenciadas e se tornam maiores"
+              iconColor="warning.main"
+              variant="problem"
+            />
           </Grid>
 
           {/* Card 3 - Esquecimentos */}
           <Grid item xs={12} sm={6} md={4}>
-            <Card sx={{ 
-              height: { xs: 'auto', md: '320px' }, 
-              minHeight: '280px',   
-              maxWidth: '350px',    
-              mx: 'auto',          
-              display: 'flex',     
-              flexDirection: 'column', 
-              textAlign: 'center', 
-              p: { xs: 2.5, md: 3 }, 
-              // Efeitos visuais modernos
-              borderRadius: 3,
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-              bgcolor: theme.palette.glass.white, // Usando glass do theme
-              backdropFilter: 'blur(10px)',
-              transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-              '&:hover': {
-                transform: 'translateY(-8px)',
-                boxShadow: '0 16px 48px rgba(0, 0, 0, 0.15)'
-              }
-            }}>
-              {/* Ícone com cor de error (vermelho) */}
-              <WarningAmber sx={{ 
-                fontSize: { xs: 50, md: 60 }, 
-                color: 'error.main', 
-                mb: 2 
-              }} />
-              <Typography variant="h6" sx={{ 
-                mb: 2, 
-                fontWeight: 'bold',
-                fontSize: { xs: '1.1rem', md: '1.25rem' }
-              }}>
-                Esquecimentos
-              </Typography>
-              <Typography variant="body1" sx={{ 
-                flexGrow: 1,
-                fontSize: { xs: '0.9rem', md: '1rem' },
-                lineHeight: 1.6,
-                color: 'text.secondary'
-              }}>
-                Não lembrar onde colocou algo ou de fazer algo importante causa estresse
-              </Typography>
-            </Card>
+            <SectionCard 
+              icon={WarningAmber}
+              title="Esquecimentos"
+              description="Não lembrar onde colocou algo ou de fazer algo importante causa estresse"
+              iconColor="error.main"
+              variant="problem"
+            />
           </Grid>
         </Grid>
       </Container>

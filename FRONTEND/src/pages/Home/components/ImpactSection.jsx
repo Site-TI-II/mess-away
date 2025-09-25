@@ -1,119 +1,121 @@
 import { Box, Typography, Container, Grid } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
+import { SectionCard } from '../../../components/common/Card'
+
+// Componentes de ícone customizados para os ODS
+const ODS3Icon = ({ sx }) => (
+  <Box
+    component="img"
+    src="https://brasil.un.org/profiles/undg_country/themes/custom/undg/images/SDGs/pt-br/SDG-3.svg"
+    alt="ODS 3 - Saúde e Bem-estar"
+    sx={{
+      width: sx?.fontSize || { xs: 50, md: 60 },
+      height: sx?.fontSize || { xs: 50, md: 60 },
+      mb: sx?.mb || 0,
+      ...sx
+    }}
+  />
+)
+
+const ODS5Icon = ({ sx }) => (
+  <Box
+    component="img"
+    src="https://brasil.un.org/profiles/undg_country/themes/custom/undg/images/SDGs/pt-br/SDG-5.svg"
+    alt="ODS 5 - Igualdade de Gênero"
+    sx={{
+      width: sx?.fontSize || { xs: 50, md: 60 },
+      height: sx?.fontSize || { xs: 50, md: 60 },
+      mb: sx?.mb || 0,
+      ...sx
+    }}
+  />
+)
+
+const ODS8Icon = ({ sx }) => (
+  <Box
+    component="img"
+    src="https://brasil.un.org/profiles/undg_country/themes/custom/undg/images/SDGs/pt-br/SDG-8.svg"
+    alt="ODS 8 - Trabalho Decente e Crescimento Econômico"
+    sx={{
+      width: sx?.fontSize || { xs: 50, md: 60 },
+      height: sx?.fontSize || { xs: 50, md: 60 },
+      mb: sx?.mb || 0,
+      ...sx
+    }}
+  />
+)
 
 /**
- * ImpactSection - Seção mostrando os benefícios sociais do app
+ * ImpactSection - Seção mostrando os Objetivos de Desenvolvimento Sustentável (ODS)
  * 
  * Funcionalidades:
- * - 4 impactos sociais com emojis grandes
- * - Grid responsivo que se adapta por tela
- * - Cores variadas para cada impacto
- * - Fundo cinza claro para alternância visual
+ * - 3 ODS com ícones SVG oficiais da ONU
+ * - Grid responsivo seguindo padrão do ProblemSection
+ * - Gradiente temático para harmonia visual
+ * - Cards profissionais com glass morphism
  */
 function ImpactSection() {
+  const theme = useTheme()
+  
   return (
     <Box sx={{ 
-      py: { xs: 6, md: 10 }, 
-      bgcolor: 'grey.50'  // Fundo cinza claro para alternância
+      py: { xs: 6, md: 10 },
+      // Usando gradiente do theme para consistência visual
+      background: theme.palette.gradients.testimonialsSection,
+      position: 'relative'
     }}>
       <Container maxWidth="lg">
+        {/* Título da seção */}
         <Typography 
           variant="h3" 
-          component="h2" 
+          component="h2"
           textAlign="center" 
-          sx={{ mb: 6, fontWeight: 'bold' }}
+          sx={{ 
+            mb: 6, 
+            fontWeight: 'bold',
+            // Gradiente no texto para harmonizar com o design
+            background: theme.palette.gradientText.heroPrimary,
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}
         >
-          Impacto Social
+          Objetivos de Desenvolvimento Sustentável
         </Typography>
         
-        {/* Grid 4 colunas com impactos sociais */}
-        <Grid container spacing={3}>
-          {/* Impacto 1 - Vida Facilitada */}
-          <Grid item xs={12} sm={6} md={3}>
-            <Box textAlign="center">
-              {/* Emoji grande para impacto visual */}
-              <Typography 
-                variant="h4" 
-                sx={{ 
-                  fontWeight: 'bold', 
-                  color: 'primary.main',  // Azul do tema
-                  mb: 1 
-                }}
-              >
-                🏠
-              </Typography>
-              <Typography variant="h6" sx={{ mb: 1 }}>
-                Vida Facilitada
-              </Typography>
-              <Typography variant="body2">
-                Facilitação da vida das pessoas
-              </Typography>
-            </Box>
+        {/* Grid de 3 cards responsivo com alinhamento horizontal */}
+        <Grid container spacing={{ xs: 3, md: 4 }} sx={{ justifyContent: 'center' }}>
+          {/* ODS 3 - Saúde e Bem-estar */}
+          <Grid item xs={12} sm={6} md={4}>
+            <SectionCard 
+              icon={ODS3Icon}
+              title="Saúde e Bem-estar"
+              description="A organização reduz o estresse e ansiedade causados pela desordem doméstica, melhorando a saúde mental através de um ambiente mais organizado e controlável"
+              iconColor="transparent" // Não precisa de cor pois é uma imagem
+              variant="problem"
+            />
           </Grid>
 
-          {/* Impacto 2 - Convivência */}
-          <Grid item xs={12} sm={6} md={3}>
-            <Box textAlign="center">
-              <Typography 
-                variant="h4" 
-                sx={{ 
-                  fontWeight: 'bold', 
-                  color: 'secondary.main',  // Roxo/rosa do tema
-                  mb: 1 
-                }}
-              >
-                👨‍👩‍👧‍👦
-              </Typography>
-              <Typography variant="h6" sx={{ mb: 1 }}>
-                Convivência
-              </Typography>
-              <Typography variant="body2">
-                Melhora na convivência familiar
-              </Typography>
-            </Box>
+          {/* ODS 5 - Igualdade de Gênero */}
+          <Grid item xs={12} sm={6} md={4}>
+            <SectionCard 
+              icon={ODS5Icon}
+              title="Igualdade de Gênero"
+              description="Facilita a distribuição equitativa das tarefas domésticas, reduzindo a carga mental que tradicionalmente recai sobre as mulheres"
+              iconColor="transparent"
+              variant="problem"
+            />
           </Grid>
 
-          {/* Impacto 3 - Produtividade */}
-          <Grid item xs={12} sm={6} md={3}>
-            <Box textAlign="center">
-              <Typography 
-                variant="h4" 
-                sx={{ 
-                  fontWeight: 'bold', 
-                  color: 'success.main',  // Verde do tema
-                  mb: 1 
-                }}
-              >
-                📈
-              </Typography>
-              <Typography variant="h6" sx={{ mb: 1 }}>
-                Produtividade
-              </Typography>
-              <Typography variant="body2">
-                Aumento da produtividade pessoal
-              </Typography>
-            </Box>
-          </Grid>
-
-          {/* Impacto 4 - Economia */}
-          <Grid item xs={12} sm={6} md={3}>
-            <Box textAlign="center">
-              <Typography 
-                variant="h4" 
-                sx={{ 
-                  fontWeight: 'bold', 
-                  color: 'warning.main',  // Laranja do tema
-                  mb: 1 
-                }}
-              >
-                💰
-              </Typography>
-              <Typography variant="h6" sx={{ mb: 1 }}>
-                Economia
-              </Typography>
-              <Typography variant="body2">
-                Benefícios financeiros
-              </Typography>
-            </Box>
+          {/* ODS 8 - Trabalho Decente e Crescimento Econômico */}
+          <Grid item xs={12} sm={6} md={4}>
+            <SectionCard 
+              icon={ODS8Icon}
+              title="Trabalho Decente e Crescimento Econômico"
+              description="Otimiza tempo que pode ser realocado para atividades produtivas, aumentando a produtividade pessoal e profissional"
+              iconColor="transparent"
+              variant="problem"
+            />
           </Grid>
         </Grid>
       </Container>

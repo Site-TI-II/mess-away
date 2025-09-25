@@ -1,19 +1,23 @@
 import { Box, Typography, Container, Stack, Button } from '@mui/material'
+import { Home, GitHub } from '@mui/icons-material'
+import { useTheme } from '@mui/material/styles'
 
 /**
- * CtaSection - Chamada final para ação com botões de download
+ * CtaSection - Chamada final para ação com botões do GitHub
  * 
  * Funcionalidades:
  * - Pergunta engajante como hook
  * - Subtítulo motivacional
- * - Botões para App Stores com emojis
+ * - Botões iguais ao HeroSection (GitHub e Experimente Grátis)
  * - Mesmo gradient do hero para simetria visual
  */
 function CtaSection() {
+  const theme = useTheme()
+  
   return (
     <Box sx={{
       // Mesmo gradient do hero para criar simetria visual
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: theme.palette.gradients.heroPrimary,
       color: 'white',
       py: { xs: 8, md: 10 },  // Padding vertical generoso
       textAlign: 'center'
@@ -40,41 +44,50 @@ function CtaSection() {
           Organize sua casa, simplifique sua vida
         </Typography>
 
-        {/* Stack para botões das lojas */}
+        {/* Stack para botões iguais ao HeroSection */}
         <Stack 
           direction={{ xs: 'column', sm: 'row' }}  // Responsivo
           spacing={2} 
           justifyContent="center"
         >
-          {/* Botão App Store */}
-          <Button 
-            variant="contained" 
+          {/* CTA Primário - GitHub */}
+          <Button
+            variant="contained"
             size="large"
-            sx={{ 
-              // Botão branco destacado
+            component="a"
+            href="https://github.com/Site-TI-II/mess-away"
+            target="_blank"
+            rel="noopener noreferrer"
+            sx={{
+              // Botão branco para contraste no fundo azul
               bgcolor: 'white',
-              color: 'primary.main',
+              color: 'primary.dark',
               '&:hover': { bgcolor: 'grey.100' },
-              py: 2,    // Padding vertical maior
-              px: 4     // Padding horizontal maior
+              py: 1.5,  // Padding vertical
+              px: 4     // Padding horizontal
             }}
           >
-            📱 Download na App Store
+            <GitHub sx={{ mr: 1 }} /> {/* Ícone do GitHub */}
+            Ver no GitHub
           </Button>
 
-          {/* Botão Google Play */}
-          <Button 
-            variant="contained" 
+          {/* CTA Secundário - Experimente Grátis */}
+          <Button
+            variant="outlined"
             size="large"
-            sx={{ 
-              // Botão verde para Google Play
-              bgcolor: 'success.main',
-              '&:hover': { bgcolor: 'success.dark' },
-              py: 2,
+            sx={{
+              borderColor: 'white',
+              color: 'white',
+              '&:hover': {
+                // Usando overlay do theme para hover
+                bgcolor: theme.palette.overlay.light,
+                borderColor: 'white'
+              },
+              py: 1.5,
               px: 4
             }}
           >
-            🤖 Disponível no Google Play
+            Experimente Grátis
           </Button>
         </Stack>
       </Container>
