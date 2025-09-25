@@ -15,7 +15,6 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckIcon from '@mui/icons-material/Check';
 
-
 // Lista provisória de responsáveis
 const listaDeResponsaveis = ['Caio', 'Leo', 'Guilherme', 'Dani', 'Minion'];
 
@@ -27,28 +26,31 @@ const coresPorResponsavel = {
   Dani: '#326eb2ff',
   Minion: '#ffca1aff'
 };
-{/*Função das Tarefas */ }
+
 function Tarefas() {
   const [tarefa, setTarefa] = useState('');
   const [responsavel, setResponsavel] = useState('');
+  const [prazo, setPrazo] = useState('');
   const [lista, setLista] = useState([]);
-  // Contador de tarefas feitas
+
+  // Contador de tarefas concluídas por responsável
   const contarPorResponsavel = () => {
     const contagem = {};
-
-    lista.forEach(({ responsavel }) => {
-      contagem[responsavel] = (contagem[responsavel] || 0) + 1;
+    lista.forEach(({ responsavel, concluida }) => {
+      if (concluida) {
+        contagem[responsavel] = (contagem[responsavel] || 0) + 1;
+      }
     });
-
     return contagem;
   };
 
   // Adiciona nova tarefa à lista
   const adicionarTarefa = () => {
-    if (tarefa.trim() && responsavel.trim()) {
-      setLista([...lista, { tarefa, responsavel, concluida: false }]);
+    if (tarefa.trim() && responsavel.trim() && prazo.trim()) {
+      setLista([...lista, { tarefa, responsavel, prazo, concluida: false }]);
       setTarefa('');
       setResponsavel('');
+      setPrazo('');
     }
   };
 
@@ -56,7 +58,8 @@ function Tarefas() {
   const removerTarefa = (index) => {
     setLista(lista.filter((_, i) => i !== index));
   };
-  //Marca tarefas como concluidas
+
+  // Marca tarefa como concluída
   const marcarComoConcluida = (index) => {
     const novaLista = [...lista];
     novaLista[index].concluida = true;
@@ -74,29 +77,44 @@ function Tarefas() {
         onChange={(e) => setTarefa(e.target.value)}
         sx={{ mb: 2 }}
       />
+      {/* Campo de seleção de responsável e prazo lado a lado */}
+      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+        <FormControl sx={{ flex: 1 }}>
+          <InputLabel>Responsável</InputLabel>
+          <Select
+            value={responsavel}
+            label="Responsável"
+            onChange={(e) => setResponsavel(e.target.value)}
+          >
+            {listaDeResponsaveis.map((nome, index) => (
+              <MenuItem key={index} value={nome}>
+                {nome}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
-      {/* Seleção de responsável */}
-      <FormControl fullWidth sx={{ mb: 2 }}>
-        <InputLabel>Responsável</InputLabel>
-        <Select
-          value={responsavel}
-          label="Responsável"
-          onChange={(e) => setResponsavel(e.target.value)}
-        >
-          {listaDeResponsaveis.map((nome, index) => (
-            <MenuItem key={index} value={nome}>
-              {nome}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+        <FormControl sx={{ flex: 1 }}>
+          <InputLabel>Prazo</InputLabel>
+          <Select
+            value={prazo}
+            label="Prazo"
+            onChange={(e) => setPrazo(e.target.value)}
+          >
+            <MenuItem value="Diária">Diária</MenuItem>
+            <MenuItem value="Semanal">Semanal</MenuItem>
+            <MenuItem value="Mensal">Mensal</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
 
       {/* Botão para adicionar tarefa */}
       <Button variant="contained" color="primary" onClick={adicionarTarefa}>
         Adicionar
       </Button>
 
-      {/* Layout horizontal: caixona cinza à esquerda, caixas brancas à direita */}
+
+      {/* Layout principal */}
       <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
         {/* Caixona cinza com lista de tarefas */}
         <Box
@@ -109,7 +127,6 @@ function Tarefas() {
             overflowY: 'auto'
           }}
         >
-          {/* Título da lista */}
           <Box
             sx={{
               backgroundColor: '#ffffff',
@@ -118,12 +135,11 @@ function Tarefas() {
               marginBottom: 1
             }}
           >
-            <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#333' }}>
+            <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#333', textAlign: 'center' }}>
               Todas as tarefas
             </Typography>
           </Box>
 
-          {/* Lista de tarefas */}
           <List>
             {lista.map((item, index) => (
               <ListItem
@@ -149,16 +165,11 @@ function Tarefas() {
                   >
                     {item.tarefa}
                   </Typography>
-
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      fontStyle: 'italic',
-                      fontWeight: 'bold',
-                      color: '#ffffffff'
-                    }}
-                  >
-                    Responsável: {item.responsavel}
+                  <Typography variant="caption" sx={{ fontStyle: 'italic', fontWeight: 'bold', color: '#ffffff' }}>
+                    Responsável: {item.responsavel} <br />
+                  </Typography>
+                  <Typography variant="caption" sx={{ fontStyle: 'italic', fontWeight: 'bold', color: '#ffffff' }}>
+                    Prazo: {item.prazo}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', gap: 1 }}>
@@ -167,35 +178,88 @@ function Tarefas() {
                     onClick={() => marcarComoConcluida(index)}
                     disabled={item.concluida}
                   >
-                    
                     <CheckIcon />
                   </IconButton>
-
                   <IconButton color="error" onClick={() => removerTarefa(index)}>
                     <DeleteIcon />
                   </IconButton>
                 </Box>
-
               </ListItem>
             ))}
           </List>
         </Box>
 
-        {/* Coluna da direita com duas caixas brancas empilhadas */}
+        {/* Coluna da direita com caixa 1 e 2 */}
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {/**Caixa 1 */}
           <Box
             sx={{
               backgroundColor: '#ffffff',
               padding: 2,
               borderRadius: 2,
-              height: '190px'
+              height: '190px',
+              overflowY: 'auto'
             }}
           >
-            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>
-              Caixa 1
+            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333', mb: 1 }}>
+              Tarefas Diárias
             </Typography>
+
+            {lista.filter((item) => item.prazo === 'Diária').length === 0 ? (
+              <Typography variant="body2" sx={{ color: '#999' }}>
+                Nenhuma tarefa diária adicionada ainda.
+              </Typography>
+            ) : (
+              <List>
+                {lista
+                  .filter((item) => item.prazo === 'Diária')
+                  .map((item, index) => (
+                    <ListItem
+                      key={index}
+                      sx={{
+                        backgroundColor: coresPorResponsavel[item.responsavel] || '#0a69b6ff',
+                        color: '#ffffff',
+                        fontWeight: 'bold',
+                        marginBottom: 1,
+                        borderRadius: 3,
+                        padding: 1,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <Box>
+                        <Typography
+                          sx={{
+                            textDecoration: item.concluida ? 'line-through' : 'none',
+                            opacity: item.concluida ? 0.6 : 1
+                          }}
+                        >
+                         {item.tarefa.length > 15 ? item.tarefa.slice(0, 15) + '...' : item.tarefa}
+                        </Typography>
+                        <Typography variant="caption" sx={{ fontStyle: 'italic', fontWeight: 'bold', color: '#ffffff' }}>
+                          {item.responsavel}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <IconButton
+                          color={item.concluida ? 'success' : 'default'}
+                          onClick={() => marcarComoConcluida(index)}
+                          disabled={item.concluida}
+                        >
+                          <CheckIcon />
+                        </IconButton>
+                        <IconButton color="error" onClick={() => removerTarefa(index)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    </ListItem>
+                  ))}
+              </List>
+            )}
           </Box>
-          {/* Caixa 2 / Estatísticas */}
+
+          {/**Caixa 2 */}
           <Box
             sx={{
               backgroundColor: '#ffffff',
@@ -221,7 +285,7 @@ function Tarefas() {
                 }}
               >
                 <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                  {nome}: {quantidade} tarefa{quantidade > 1 ? 's' : ''}
+                  {nome}: {quantidade} tarefa concluída(s){quantidade > 1 ? 's' : ''}
                 </Typography>
               </Box>
             ))}
@@ -232,11 +296,10 @@ function Tarefas() {
               </Typography>
             )}
           </Box>
-
         </Box>
       </Box>
     </Box>
-  ); // ← fecha o return
-} // ← fecha a função Tarefas
+  );
+}
 
 export default Tarefas;
