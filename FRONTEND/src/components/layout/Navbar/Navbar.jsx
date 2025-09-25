@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { 
-  AppBar, 
-  Toolbar, 
-  Typography, 
-  Box, 
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Box,
   Button,
   IconButton,
   Drawer,
@@ -21,7 +21,6 @@ function Navbar() {
     setMobileOpen(!mobileOpen)
   }
 
-  // Itens do menu centralizados para manutenibilidade
   const menuItems = [
     { text: 'Home', path: '/' },
     { text: 'Login', path: '/login' },
@@ -30,35 +29,47 @@ function Navbar() {
   ]
 
   return (
-    <AppBar position="static">
-      <Toolbar sx={{
-        width: '100%',
-        maxWidth: { xs: '100%', sm: '600px', md: '900px', lg: '1200px' },
-        margin: '0 auto',
-        px: { xs: 2, sm: 3, md: 4, lg: 2 }
-      }}>
-        
-        <Typography variant="h3" component="div" sx={{ flexGrow: 1 }}>
+    <AppBar position="sticky" sx={{ top: 0, zIndex: 1100, height: 'auto', boxShadow: 3 }}>
+      <Toolbar
+        sx={{
+          height: 110,
+          width: '100%',
+          maxWidth: { xs: '100%', sm: '600px', md: '900px', lg: '1200px' },
+          margin: '0 auto',
+          px: { xs: 2, sm: 3, md: 4, lg: 2 },
+          display: 'flex',
+          alignItems: 'center'
+        }}
+      >
+        <Typography
+          variant="h3"
+          component="div"
+          sx={{
+            flexGrow: 1,
+            fontWeight: 'bold',
+            fontSize: { xs: '2.5rem', sm: '3rem', md: '3.5rem' }
+          }}
+        >
           🏠 Mess Away
         </Typography>
-        
-        {/* Menu Desktop - esconde no mobile */}
-        <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2 }}>
+
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 3 }}>
           {menuItems.map((item) => (
-            <Button 
+            <Button
               key={item.text}
               color="inherit"
               component={Link}
               to={item.path}
+              sx={{ py: 2 }}
             >
               {item.text}
             </Button>
           ))}
-          <Button color="inherit" component={Link} to="/Tarefas">Tarefas</Button>
-        
+          <Button color="inherit" component={Link} to="/Tarefas" sx={{ py: 2 }}>
+            Tarefas
+          </Button>
         </Box>
 
-        {/* Menu Mobile - mostra só no mobile */}
         <IconButton
           color="inherit"
           edge="start"
@@ -68,7 +79,6 @@ function Navbar() {
           <MenuIcon />
         </IconButton>
 
-        {/* Drawer para Mobile */}
         <Drawer
           variant="temporary"
           anchor="right"
@@ -82,9 +92,9 @@ function Navbar() {
         >
           <List>
             {menuItems.map((item) => (
-              <ListItem 
+              <ListItem
                 key={item.text}
-                component={Link} 
+                component={Link}
                 to={item.path}
                 onClick={handleDrawerToggle}
                 sx={{ textDecoration: 'none', color: 'inherit' }}
