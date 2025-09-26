@@ -25,7 +25,8 @@ function Navbar() {
     { text: 'Home', path: '/' },
     { text: 'Login', path: '/login' },
     { text: 'Registrar', path: '/register' },
-    { text: 'Dashboard', path: '/dashboard' }
+    { text: 'Dashboard', path: '/dashboard' },
+    { text: 'Casas', path: '/Casas'}
   ]
 
   return (

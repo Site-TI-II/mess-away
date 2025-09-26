@@ -1,305 +1,239 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
-  TextField,
   Button,
   List,
   ListItem,
   Typography,
   IconButton,
-  Select,
-  MenuItem,
-  InputLabel,
-  FormControl
+  Avatar,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField
 } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
-import CheckIcon from '@mui/icons-material/Check';
+import EditIcon from '@mui/icons-material/Edit';
+import CloseIcon from '@mui/icons-material/Close';
 
-// Lista provisória de responsáveis
-const listaDeResponsaveis = ['Caio', 'Leo', 'Guilherme', 'Dani', 'Minion'];
+function Casas() {
+  const [casas, setCasas] = useState([]);
+  const [casaSelecionadaId, setCasaSelecionadaId] = useState(null);
+  const [addPessoaDialogOpen, setAddPessoaDialogOpen] = useState(false);
+  const [addCasaDialogOpen, setAddCasaDialogOpen] = useState(false);
+  const [novoNomePessoa, setNovoNomePessoa] = useState('');
+  const [novoNomeCasa, setNovoNomeCasa] = useState('');
+  const [editingItemId, setEditingItemId] = useState(null);
+  const [editingText, setEditingText] = useState('');
 
-// Cores associadas a cada responsável
-const coresPorResponsavel = {
-  Caio: '#9d0386ff',
-  Leo: '#ff8025ff',
-  Guilherme: '#20d043ff',
-  Dani: '#326eb2ff',
-  Minion: '#ffca1aff'
-};
+  const casaAtual = casas.find(c => c.id === casaSelecionadaId);
 
-function Tarefas() {
-  const [tarefa, setTarefa] = useState('');
-  const [responsavel, setResponsavel] = useState('');
-  const [prazo, setPrazo] = useState('');
-  const [lista, setLista] = useState([]);
+  useEffect(() => {
+    if (!casas.find(c => c.id === casaSelecionadaId) && casas.length > 0) {
+      setCasaSelecionadaId(casas[0].id);
+    } else if (casas.length === 0) {
+        setCasaSelecionadaId(null);
+    }
+  }, [casas, casaSelecionadaId]);
 
-  // Contador de tarefas concluídas por responsável
-  const contarPorResponsavel = () => {
-    const contagem = {};
-    lista.forEach(({ responsavel, concluida }) => {
-      if (concluida) {
-        contagem[responsavel] = (contagem[responsavel] || 0) + 1;
-      }
-    });
-    return contagem;
+  const handleAdicionarCasa = () => {
+    if (novoNomeCasa.trim() === '') return;
+    const novaCasa = {
+      id: Date.now(),
+      nome: novoNomeCasa,
+      imagem: `https://source.unsplash.com/random/400x400?house&sig=${Date.now()}`,
+      pessoas: []
+    };
+    setCasas([...casas, novaCasa]);
+    setNovoNomeCasa('');
+    setAddCasaDialogOpen(false);
   };
-
-  // Adiciona nova tarefa à lista
-  const adicionarTarefa = () => {
-    if (tarefa.trim() && responsavel.trim() && prazo.trim()) {
-      setLista([...lista, { tarefa, responsavel, prazo, concluida: false }]);
-      setTarefa('');
-      setResponsavel('');
-      setPrazo('');
+  
+  const handleDeletarCasa = (casaId) => {
+    if (window.confirm("Tem certeza que deseja deletar esta casa e todas as pessoas nela?")) {
+      setCasas(casas.filter(c => c.id !== casaId));
     }
   };
 
-  // Remove tarefa pelo índice
-  const removerTarefa = (index) => {
-    setLista(lista.filter((_, i) => i !== index));
+  const handleAdicionarPessoa = () => {
+    if (novoNomePessoa.trim() === '') return;
+    const pessoaParaAdicionar = {
+      id: Date.now(),
+      nome: novoNomePessoa,
+      papel: 'Membro'
+    };
+    const novasCasas = casas.map(casa => {
+      if (casa.id === casaSelecionadaId) {
+        return { ...casa, pessoas: [...casa.pessoas, pessoaParaAdicionar] };
+      }
+      return casa;
+    });
+    setCasas(novasCasas);
+    setNovoNomePessoa('');
+    setAddPessoaDialogOpen(false);
+  };
+  
+  const handleRemoverPessoa = (pessoaId) => {
+    const novasCasas = casas.map(casa => {
+        if (casa.id === casaSelecionadaId) {
+            const novasPessoas = casa.pessoas.filter(p => p.id !== pessoaId);
+            return { ...casa, pessoas: novasPessoas };
+        }
+        return casa;
+    });
+    setCasas(novasCasas);
   };
 
-  // Marca tarefa como concluída
-  const marcarComoConcluida = (index) => {
-    const novaLista = [...lista];
-    novaLista[index].concluida = true;
-    setLista(novaLista);
+  const handleStartEdit = (item) => {
+    setEditingItemId(item.id);
+    setEditingText(item.nome);
   };
+
+  const handleCancelEdit = () => {
+    setEditingItemId(null);
+    setEditingText('');
+  };
+
+  const handleSaveEdit = () => {
+    if (editingText.trim() === '') return handleCancelEdit();
+    
+    const novasCasas = casas.map(casa => {
+        if (casa.id === editingItemId) {
+            return { ...casa, nome: editingText };
+        }
+        if (casa.id === casaSelecionadaId) {
+            return {
+                ...casa,
+                pessoas: casa.pessoas.map(pessoa => 
+                    pessoa.id === editingItemId ? { ...pessoa, nome: editingText } : pessoa
+                )
+            };
+        }
+        return casa;
+    });
+    setCasas(novasCasas);
+    handleCancelEdit();
+  };
+
+  const handleEditKeyDown = (event) => {
+    if (event.key === 'Enter') handleSaveEdit();
+    if (event.key === 'Escape') handleCancelEdit();
+  };
+
+  if (!casaAtual) {
+    return (
+        <Box sx={{ p: 3, textAlign: 'center' }}>
+            <Typography variant="h5">Nenhuma casa cadastrada.</Typography>
+            <Button variant="contained" onClick={() => setAddCasaDialogOpen(true)} sx={{mt: 2}}>
+                Adicionar Primeira Casa
+            </Button>
+            <Dialog open={addCasaDialogOpen} onClose={() => setAddCasaDialogOpen(false)}>
+                <DialogTitle>Adicionar Nova Casa</DialogTitle>
+                <DialogContent>
+                    <TextField autoFocus margin="dense" label="Nome da Casa" type="text" fullWidth variant="standard" value={novoNomeCasa} onChange={(e) => setNovoNomeCasa(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAdicionarCasa()} />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setAddCasaDialogOpen(false)}>Cancelar</Button>
+                    <Button onClick={handleAdicionarCasa}>Salvar</Button>
+                </DialogActions>
+            </Dialog>
+        </Box>
+    );
+  }
+
+  const numeroDeLinhasVazias = Math.max(0, 8 - casaAtual.pessoas.length);
 
   return (
-    <Box sx={{ maxWidth: '900px', margin: '0 auto', padding: 3 }}>
-      {/* Campo de texto para nova tarefa */}
-      <TextField
-        label="Nova tarefa"
-        variant="outlined"
-        fullWidth
-        value={tarefa}
-        onChange={(e) => setTarefa(e.target.value)}
-        sx={{ mb: 2 }}
-      />
-      {/* Campo de seleção de responsável e prazo lado a lado */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-        <FormControl sx={{ flex: 1 }}>
-          <InputLabel>Responsável</InputLabel>
-          <Select
-            value={responsavel}
-            label="Responsável"
-            onChange={(e) => setResponsavel(e.target.value)}
-          >
-            {listaDeResponsaveis.map((nome, index) => (
-              <MenuItem key={index} value={nome}>
-                {nome}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+    <>
+      <Box sx={{ minHeight: '100vh', p: 3 }}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 3, alignItems: 'center' }}>
+          {casas.map(casa => (
+            <Box key={casa.id} sx={{ position: 'relative', mr: 1, mb: 1 }}>
+              <Button variant={casa.id === casaSelecionadaId ? "contained" : "outlined"} onClick={() => setCasaSelecionadaId(casa.id)} sx={{ pr: '30px' }}>
+                {casa.nome}
+              </Button>
+              <IconButton size="small" onClick={() => handleDeletarCasa(casa.id)} sx={{ position: 'absolute', top: 0, right: 0, p: '4px' }}>
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          ))}
+          <Button variant="contained" onClick={() => setAddCasaDialogOpen(true)} sx={{ minWidth: '40px', p: '6px 12px' }}> <AddIcon /> </Button>
+        </Box>
 
-        <FormControl sx={{ flex: 1 }}>
-          <InputLabel>Prazo</InputLabel>
-          <Select
-            value={prazo}
-            label="Prazo"
-            onChange={(e) => setPrazo(e.target.value)}
-          >
-            <MenuItem value="Diária">Diária</MenuItem>
-            <MenuItem value="Semanal">Semanal</MenuItem>
-            <MenuItem value="Mensal">Mensal</MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
-
-      {/* Botão para adicionar tarefa */}
-      <Button variant="contained" color="primary" onClick={adicionarTarefa}>
-        Adicionar
-      </Button>
-
-
-      {/* Layout principal */}
-      <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
-        {/* Caixona cinza com lista de tarefas */}
-        <Box
-          sx={{
-            backgroundColor: '#c0c0c0ff',
-            height: '400px',
-            flex: 2,
-            borderRadius: 4,
-            padding: 5,
-            overflowY: 'auto'
-          }}
-        >
-          <Box
-            sx={{
-              backgroundColor: '#ffffff',
-              padding: 1,
-              borderRadius: 4,
-              marginBottom: 1
-            }}
-          >
-            <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#333', textAlign: 'center' }}>
-              Todas as tarefas
-            </Typography>
+        <Box sx={{ maxWidth: '450px', margin: '0 auto', backgroundColor: '#ffffff', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 3 }}>
+            <Avatar alt={casaAtual.nome} src={casaAtual.imagem} sx={{ width: 120, height: 120, mb: 2 }} />
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                {editingItemId === casaAtual.id ? (
+                    <TextField value={editingText} onChange={(e) => setEditingText(e.target.value)} onKeyDown={handleEditKeyDown} onBlur={handleSaveEdit} autoFocus variant="standard" />
+                ) : (
+                    <>
+                        <Chip label={casaAtual.nome} sx={{ backgroundColor: '#e0e0e0', fontWeight: 'bold' }} />
+                        <IconButton size="small" onClick={() => handleStartEdit(casaAtual)} sx={{ ml: 1 }}> <EditIcon fontSize="small" /> </IconButton>
+                    </>
+                )}
+            </Box>
           </Box>
 
-          <List>
-            {lista.map((item, index) => (
-              <ListItem
-                key={index}
-                sx={{
-                  backgroundColor: coresPorResponsavel[item.responsavel] || '#0a69b6ff',
-                  color: '#ffffff',
-                  fontWeight: 'bold',
-                  marginBottom: 1,
-                  borderRadius: 3,
-                  padding: 2,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}
-              >
-                <Box>
-                  <Typography
-                    sx={{
-                      textDecoration: item.concluida ? 'line-through' : 'none',
-                      opacity: item.concluida ? 0.6 : 1
-                    }}
-                  >
-                    {item.tarefa}
-                  </Typography>
-                  <Typography variant="caption" sx={{ fontStyle: 'italic', fontWeight: 'bold', color: '#ffffff' }}>
-                    Responsável: {item.responsavel} <br />
-                  </Typography>
-                  <Typography variant="caption" sx={{ fontStyle: 'italic', fontWeight: 'bold', color: '#ffffff' }}>
-                    Prazo: {item.prazo}
-                  </Typography>
+          <List sx={{ p: 0 }}>
+            {casaAtual.pessoas.map(pessoa => (
+              <ListItem key={pessoa.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #eeeeee', p: '8px 16px' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Avatar sx={{ width: 32, height: 32, mr: 2 }} alt={pessoa.nome} />
+                  {editingItemId === pessoa.id ? (
+                      <TextField value={editingText} onChange={(e) => setEditingText(e.target.value)} onKeyDown={handleEditKeyDown} onBlur={handleSaveEdit} autoFocus variant="standard" />
+                  ) : (
+                      <>
+                        <Chip label={pessoa.nome} size="small" sx={{ backgroundColor: '#673ab7', color: 'white', fontWeight: 'bold', mr: 1 }} />
+                        <Chip label={pessoa.papel} size="small" />
+                        <IconButton size="small" onClick={() => handleStartEdit(pessoa)} sx={{ ml: 1 }}> <EditIcon fontSize="inherit" /> </IconButton>
+                      </>
+                  )}
                 </Box>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <IconButton
-                    color={item.concluida ? 'success' : 'default'}
-                    onClick={() => marcarComoConcluida(index)}
-                    disabled={item.concluida}
-                  >
-                    <CheckIcon />
-                  </IconButton>
-                  <IconButton color="error" onClick={() => removerTarefa(index)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>
+                <IconButton size="small" color="error" onClick={() => handleRemoverPessoa(pessoa.id)}> <DeleteIcon /> </IconButton>
               </ListItem>
+            ))}
+
+            <ListItem button onClick={() => setAddPessoaDialogOpen(true)} sx={{ borderTop: '1px solid #eeeeee', p: '12px 16px' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', color: '#555' }}>
+                <AddIcon sx={{ mr: 1.5 }} />
+                <Typography variant="body1" sx={{ fontWeight: 'bold' }}>Adicionar Pessoa</Typography>
+              </Box>
+            </ListItem>
+            
+            {Array.from({ length: numeroDeLinhasVazias }).map((_, index) => (
+              <ListItem key={`empty-${index}`} sx={{ height: '48px', backgroundColor: '#fff0f5', borderTop: '1px solid #e0e0e0' }} />
             ))}
           </List>
         </Box>
-
-        {/* Coluna da direita com caixa 1 e 2 */}
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {/**Caixa 1 */}
-          <Box
-            sx={{
-              backgroundColor: '#ffffff',
-              padding: 2,
-              borderRadius: 2,
-              height: '190px',
-              overflowY: 'auto'
-            }}
-          >
-            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333', mb: 1 }}>
-              Tarefas Diárias
-            </Typography>
-
-            {lista.filter((item) => item.prazo === 'Diária').length === 0 ? (
-              <Typography variant="body2" sx={{ color: '#999' }}>
-                Nenhuma tarefa diária adicionada ainda.
-              </Typography>
-            ) : (
-              <List>
-                {lista
-                  .filter((item) => item.prazo === 'Diária')
-                  .map((item, index) => (
-                    <ListItem
-                      key={index}
-                      sx={{
-                        backgroundColor: coresPorResponsavel[item.responsavel] || '#0a69b6ff',
-                        color: '#ffffff',
-                        fontWeight: 'bold',
-                        marginBottom: 1,
-                        borderRadius: 3,
-                        padding: 1,
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                      }}
-                    >
-                      <Box>
-                        <Typography
-                          sx={{
-                            textDecoration: item.concluida ? 'line-through' : 'none',
-                            opacity: item.concluida ? 0.6 : 1
-                          }}
-                        >
-                         {item.tarefa.length > 15 ? item.tarefa.slice(0, 15) + '...' : item.tarefa}
-                        </Typography>
-                        <Typography variant="caption" sx={{ fontStyle: 'italic', fontWeight: 'bold', color: '#ffffff' }}>
-                          {item.responsavel}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <IconButton
-                          color={item.concluida ? 'success' : 'default'}
-                          onClick={() => marcarComoConcluida(index)}
-                          disabled={item.concluida}
-                        >
-                          <CheckIcon />
-                        </IconButton>
-                        <IconButton color="error" onClick={() => removerTarefa(index)}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </Box>
-                    </ListItem>
-                  ))}
-              </List>
-            )}
-          </Box>
-
-          {/**Caixa 2 */}
-          <Box
-            sx={{
-              backgroundColor: '#ffffff',
-              padding: 2,
-              borderRadius: 2,
-              height: '190px',
-              overflowY: 'auto'
-            }}
-          >
-            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333', mb: 1 }}>
-              Estatísticas
-            </Typography>
-
-            {Object.entries(contarPorResponsavel()).map(([nome, quantidade]) => (
-              <Box
-                key={nome}
-                sx={{
-                  backgroundColor: coresPorResponsavel[nome] || '#eeeeee',
-                  borderRadius: 2,
-                  padding: 1,
-                  mb: 1,
-                  color: '#ffffff'
-                }}
-              >
-                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                  {nome}: {quantidade} tarefa concluída(s){quantidade > 1 ? 's' : ''}
-                </Typography>
-              </Box>
-            ))}
-
-            {lista.length === 0 && (
-              <Typography variant="body2" sx={{ color: '#999' }}>
-                Nenhuma tarefa adicionada ainda.
-              </Typography>
-            )}
-          </Box>
-        </Box>
       </Box>
-    </Box>
+
+      <Dialog open={addPessoaDialogOpen} onClose={() => setAddPessoaDialogOpen(false)}>
+        <DialogTitle>Adicionar Nova Pessoa</DialogTitle>
+        <DialogContent>
+            <TextField autoFocus margin="dense" label="Nome da Pessoa" type="text" fullWidth variant="standard" value={novoNomePessoa} onChange={(e) => setNovoNomePessoa(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAdicionarPessoa()} />
+        </DialogContent>
+        <DialogActions>
+            <Button onClick={() => setAddPessoaDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleAdicionarPessoa}>Salvar</Button>
+        </DialogActions>
+      </Dialog>
+      
+      <Dialog open={addCasaDialogOpen} onClose={() => setAddCasaDialogOpen(false)}>
+        <DialogTitle>Adicionar Nova Casa</DialogTitle>
+        <DialogContent>
+            <TextField autoFocus margin="dense" label="Nome da Casa" type="text" fullWidth variant="standard" value={novoNomeCasa} onChange={(e) => setNovoNomeCasa(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAdicionarCasa()} />
+        </DialogContent>
+        <DialogActions>
+            <Button onClick={() => setAddCasaDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleAdicionarCasa}>Salvar</Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }
 
-export default Tarefas;
+export default Casas;
