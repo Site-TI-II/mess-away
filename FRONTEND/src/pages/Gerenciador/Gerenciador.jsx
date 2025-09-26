@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Box,
   TextField,
@@ -7,190 +7,160 @@ import {
   ListItem,
   Typography,
   IconButton,
-  Select,
-  MenuItem,
-  InputLabel,
-  FormControl
-} from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import CheckIcon from '@mui/icons-material/Check';
+  LinearProgress,
+} from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
 
-// Lista provisória de responsáveis
-const listaDeResponsaveis = ['Caio', 'Leo', 'Guilherme', 'Dani', 'Minion'];
+function Gerenciador() {
+  const [objetivo, setObjetivo] = useState("");
+  const [nomeGasto, setNomeGasto] = useState("");
+  const [valorGasto, setValorGasto] = useState("");
+  const [gastos, setGastos] = useState([]);
 
-// Cores associadas a cada responsável
-const coresPorResponsavel = {
-  Caio: '#9d0386ff',
-  Leo: '#ff8025ff',
-  Guilherme: '#20d043ff',
-  Dani: '#326eb2ff',
-  Minion: '#ffca1aff'
-};
-
-function Tarefas() {
-  const [tarefa, setTarefa] = useState('');
-  const [responsavel, setResponsavel] = useState('');
-  const [prazo, setPrazo] = useState('');
-  const [lista, setLista] = useState([]);
-
-  // Contador de tarefas concluídas por responsável
-  const contarPorResponsavel = () => {
-    const contagem = {};
-    lista.forEach(({ responsavel, concluida }) => {
-      if (concluida) {
-        contagem[responsavel] = (contagem[responsavel] || 0) + 1;
-      }
-    });
-    return contagem;
-  };
-
-  // Adiciona nova tarefa à lista
-  const adicionarTarefa = () => {
-    if (tarefa.trim() && responsavel.trim() && prazo.trim()) {
-      setLista([...lista, { tarefa, responsavel, prazo, concluida: false }]);
-      setTarefa('');
-      setResponsavel('');
-      setPrazo('');
+  // Função para adicionar gasto
+  const adicionarGasto = () => {
+    if (nomeGasto.trim() && valorGasto.trim() && !isNaN(valorGasto)) {
+      setGastos([
+        ...gastos,
+        { nome: nomeGasto, valor: parseFloat(valorGasto) },
+      ]);
+      setNomeGasto("");
+      setValorGasto("");
     }
   };
 
-  // Remove tarefa pelo índice
-  const removerTarefa = (index) => {
-    setLista(lista.filter((_, i) => i !== index));
+  // Remover gasto
+  const removerGasto = (index) => {
+    setGastos(gastos.filter((_, i) => i !== index));
   };
 
-  // Marca tarefa como concluída
-  const marcarComoConcluida = (index) => {
-    const novaLista = [...lista];
-    novaLista[index].concluida = true;
-    setLista(novaLista);
-  };
+  // Calcular total
+  const total = gastos.reduce((acc, item) => acc + item.valor, 0);
+
+  // Calcular progresso (em %)
+  const progresso =
+    objetivo && parseFloat(objetivo) > 0
+      ? Math.min((total / parseFloat(objetivo)) * 100, 100)
+      : 0;
 
   return (
-    <Box sx={{ maxWidth: '900px', margin: '0 auto', padding: 3 }}>
-      {/* Campo de texto para nova tarefa */}
-      <TextField
-        label="Nova tarefa"
-        variant="outlined"
-        fullWidth
-        value={tarefa}
-        onChange={(e) => setTarefa(e.target.value)}
-        sx={{ mb: 2 }}
-      />
-      {/* Campo de seleção de responsável e prazo lado a lado */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-        <FormControl sx={{ flex: 1 }}>
-          <InputLabel>Responsável</InputLabel>
-          <Select
-            value={responsavel}
-            label="Responsável"
-            onChange={(e) => setResponsavel(e.target.value)}
-          >
-            {listaDeResponsaveis.map((nome, index) => (
-              <MenuItem key={index} value={nome}>
-                {nome}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <FormControl sx={{ flex: 1 }}>
-          <InputLabel>Prazo</InputLabel>
-          <Select
-            value={prazo}
-            label="Prazo"
-            onChange={(e) => setPrazo(e.target.value)}
-          >
-            <MenuItem value="Diária">Diária</MenuItem>
-            <MenuItem value="Semanal">Semanal</MenuItem>
-            <MenuItem value="Mensal">Mensal</MenuItem>
-          </Select>
-        </FormControl>
+    <Box sx={{ maxWidth: "600px", margin: "0 auto", padding: 3 }}>
+      {/* Campo para meta */}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h5" sx={{ fontWeight: "bold", mb: 1 }}>
+          Objetivo de custo
+        </Typography>
+        <TextField
+          type="number"
+          fullWidth
+          label="Defina sua meta (R$)"
+          value={objetivo}
+          onChange={(e) => setObjetivo(e.target.value)}
+        />
       </Box>
 
-      {/* Botão para adicionar tarefa */}
-      <Button variant="contained" color="primary" onClick={adicionarTarefa}>
-        Adicionar
-      </Button>
+      {/* Campos para adicionar gasto */}
+      <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+        <TextField
+          label="Nome do gasto"
+          variant="outlined"
+          value={nomeGasto}
+          onChange={(e) => setNomeGasto(e.target.value)}
+          sx={{ flex: 2 }}
+        />
+        <TextField
+          label="Valor (R$)"
+          variant="outlined"
+          type="number"
+          value={valorGasto}
+          onChange={(e) => setValorGasto(e.target.value)}
+          sx={{ flex: 1 }}
+        />
+        <Button variant="contained" color="primary" onClick={adicionarGasto}>
+          Adicionar
+        </Button>
+      </Box>
 
-
-      {/* Layout principal */}
-      <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
-        {/* Caixona cinza com lista de tarefas */}
-        <Box
-          sx={{
-            backgroundColor: '#c0c0c0ff',
-            height: '400px',
-            flex: 2,
-            borderRadius: 4,
-            padding: 5,
-            overflowY: 'auto'
-          }}
+      {/* Lista de gastos */}
+      <Box
+        sx={{
+          backgroundColor: "#f0f0f0",
+          borderRadius: 4,
+          padding: 3,
+          minHeight: "300px",
+        }}
+      >
+        <Typography
+          variant="h6"
+          sx={{ fontWeight: "bold", mb: 2, textAlign: "center" }}
         >
-          <Box
-            sx={{
-              backgroundColor: '#ffffff',
-              padding: 1,
-              borderRadius: 4,
-              marginBottom: 1
-            }}
-          >
-            <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#333', textAlign: 'center' }}>
-              Todas as tarefas
+          Lista de gastos
+        </Typography>
+
+        <List>
+          {gastos.map((item, index) => (
+            <ListItem
+              key={index}
+              sx={{
+                backgroundColor: "#ffffff",
+                mb: 1,
+                borderRadius: 3,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: 2,
+              }}
+            >
+              <Typography>
+                {item.nome} - R$ {item.valor.toFixed(2)}
+              </Typography>
+              <IconButton color="error" onClick={() => removerGasto(index)}>
+                <DeleteIcon />
+              </IconButton>
+            </ListItem>
+          ))}
+        </List>
+
+        {/* Meta, barra de progresso e total */}
+        <Box sx={{ mt: 3, textAlign: "center" }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+            Meta de gastos: R$ {objetivo || "0.00"}
+          </Typography>
+
+          {/* Barra de progresso */}
+          <Box sx={{ mt: 2 }}>
+            <LinearProgress
+              variant="determinate"
+              value={progresso}
+              sx={{
+                height: 12,
+                borderRadius: 6,
+                backgroundColor: "#ddd",
+                "& .MuiLinearProgress-bar": {
+                  backgroundColor: total > objetivo ? "red" : "green",
+                },
+              }}
+            />
+            <Typography sx={{ mt: 1, fontWeight: "bold" }}>
+              {progresso.toFixed(1)}% da meta
             </Typography>
           </Box>
 
-          <List>
-            {lista.map((item, index) => (
-              <ListItem
-                key={index}
-                sx={{
-                  backgroundColor: coresPorResponsavel[item.responsavel] || '#0a69b6ff',
-                  color: '#ffffff',
-                  fontWeight: 'bold',
-                  marginBottom: 1,
-                  borderRadius: 3,
-                  padding: 2,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}
-              >
-                <Box>
-                  <Typography
-                    sx={{
-                      textDecoration: item.concluida ? 'line-through' : 'none',
-                      opacity: item.concluida ? 0.6 : 1
-                    }}
-                  >
-                    {item.tarefa}
-                  </Typography>
-                  <Typography variant="caption" sx={{ fontStyle: 'italic', fontWeight: 'bold', color: '#ffffff' }}>
-                    Responsável: {item.responsavel} <br />
-                  </Typography>
-                  <Typography variant="caption" sx={{ fontStyle: 'italic', fontWeight: 'bold', color: '#ffffff' }}>
-                    Prazo: {item.prazo}
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <IconButton
-                    color={item.concluida ? 'success' : 'default'}
-                    onClick={() => marcarComoConcluida(index)}
-                    disabled={item.concluida}
-                  >
-                    <CheckIcon />
-                  </IconButton>
-                  <IconButton color="error" onClick={() => removerTarefa(index)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>
-              </ListItem>
-            ))}
-          </List>
+          {/* Total */}
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: "bold",
+              color: total > objetivo ? "red" : "green",
+              mt: 2,
+            }}
+          >
+            Total de gastos: R$ {total.toFixed(2)}
+          </Typography>
         </Box>
       </Box>
     </Box>
   );
 }
 
-export default Tarefas;
+export default Gerenciador;

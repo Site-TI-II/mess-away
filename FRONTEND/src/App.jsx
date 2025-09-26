@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Tarefas from './pages/Tarefas/Tarefas';
+import Gerenciador from './pages/Gerenciador'; // ⬅️ import novo
 import theme from './theme/theme';
 import './App.css';
 
@@ -21,6 +22,7 @@ function App() {
           <Route path="register" element={<Register />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="tarefas" element={<Tarefas />} />
+          <Route path="gerenciador" element={<Gerenciador />} /> {/* ⬅️ rota nova */}
         </Route>
       </Routes>
     </ThemeProvider>
