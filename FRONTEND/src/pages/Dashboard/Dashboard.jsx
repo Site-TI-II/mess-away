@@ -1,97 +1,110 @@
-// Imports dos componentes Material-UI para layout e interface
-import { 
-  Box,          // Container flexível para layout
-  Typography,   // Componente para textos com tipografia do tema
-  Grid,         // Sistema de grid responsivo
-  Card,         // Container com elevação e bordas arredondadas
-  CardContent,  // Área de conteúdo interno do Card
-  Paper         // Componente base com elevação (não usado neste código)
-} from '@mui/material'
+// src/pages/Dashboard/Dashboard.jsx
 
-// Imports dos ícones Material Design
-import AssignmentIcon from '@mui/icons-material/Assignment'     // Ícone de tarefas/assignments
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'   // Ícone de check/concluído
+import { useState, useEffect } from 'react'
+import { Box, Container, Typography, Grid } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
+import InsightBanner from './components/InsightBanner'
+import CasasSection from './components/CasasSection'
+import AlertsSection from './components/AlertsSection'
+import QuickActionsSection from './components/QuickActionsSection'
+import MotivationalSection from './components/MotivationalSection'
 
+/**
+ * Dashboard - Página principal do sistema
+ * 
+ * Estrutura REORGANIZADA:
+ * 1. InsightBanner - Banner destacado com insight do dia
+ * 2. QuickActionsSection - Ações rápidas (botões grandes)
+ * 3. CasasSection - Cards de casas (full-width)
+ * 4. Grid Layout (1:3 + 2:3):
+ *    - AlertsSection (4 cols - 1/3) - Lista de alertas
+ *    - MotivationalSection (8 cols - 2/3) - Progresso semanal
+ */
 function Dashboard() {
+  const theme = useTheme()
+
+  // Estados para dados (preparado para integração com API)
+  const [casas, setCasas] = useState([])
+  const [alerts, setAlerts] = useState([])
+  const [weeklyData, setWeeklyData] = useState(null)
+  const [insight, setInsight] = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  // Simular carregamento de dados (substituir por chamada à API)
+  useEffect(() => {
+    loadDashboardData()
+  }, [])
+
+  const loadDashboardData = async () => {
+    setLoading(true)
+    
+    // Simular delay de API
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    // Aqui você faria:
+    // const response = await api.get('/dashboard')
+    // setCasas(response.casas)
+    // setAlerts(response.alerts)
+    // etc...
+
+    setLoading(false)
+  }
+
   return (
-    // Container principal da página
-    <Box sx={{ 
-      maxWidth: '1200px',           // Largura máxima do conteúdo
-      margin: '0 auto',             // Centraliza horizontalmente
-      padding: { xs: 2, md: 3 }     // Padding responsivo: 16px mobile, 24px desktop
-    }}>
-      
-      {/* Título principal da página */}
-      <Typography variant="h3" component="h2" sx={{ mb: 2 }}>
-        📊 Dashboard
-      </Typography>
-      
-      {/* Subtítulo/descrição */}
-      <Typography variant="body1" sx={{ mb: 4 }}>
-        Bem-vindo ao seu painel de controle!
-      </Typography>
-      
-      {/* Container Grid responsivo para os cards */}
-      <Grid container spacing={3}>
-        
-        {/* Card 1: Tarefas Pendentes */}
-        <Grid item xs={12} sm={6} md={4}>  {/* Responsivo: 100% mobile → 50% tablet → 33% desktop */}
-          <Card sx={{ height: '100%' }}>   {/* Card com altura total para uniformidade */}
-            <CardContent sx={{ textAlign: 'center' }}>  {/* Conteúdo centralizado */}
-              
-              {/* Ícone de tarefas pendentes */}
-              <AssignmentIcon 
-                sx={{ 
-                  fontSize: 40,           // Tamanho do ícone: 40px
-                  color: 'warning.main',  // Cor laranja/amarela do tema (pendente)
-                  mb: 1                   // Margin bottom: 8px
-                }} 
-              />
-              
-              {/* Título do card */}
-              <Typography variant="h6" component="h3" gutterBottom>
-                Tarefas Pendentes
-              </Typography>
-              
-              {/* Número de tarefas - destaque */}
-              <Typography variant="h2" sx={{ fontWeight: 'bold', color: 'warning.main' }}>
-                5
-              </Typography>
-              
-            </CardContent>
-          </Card>
+    <Box
+      sx={{
+        minHeight: 'calc(100vh - 80px)',
+        py: 4,
+        background: `linear-gradient(180deg, 
+          ${theme.palette.grey[50]} 0%, 
+          ${theme.palette.grey[100]} 100%
+        )`
+      }}
+    >
+      <Container maxWidth="lg">
+        {/* Header do Dashboard */}
+        <Box sx={{ mb: 4 }}>
+          <Typography
+            variant="h3"
+            component="h1"
+            sx={{
+              fontWeight: 'bold',
+              mb: 1,
+              background: theme.palette.gradientText.heroPrimary,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}
+          >
+            Dashboard
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Visão geral das suas tarefas e casas
+          </Typography>
+        </Box>
+
+        {/* 1. Insight Banner (destaque máximo) */}
+        <InsightBanner insight={insight} />
+
+        {/* 2. Ações Rápidas (destaque alto) */}
+        <QuickActionsSection />
+
+        {/* 3. Casas Section (full-width) */}
+        <CasasSection casas={casas} />
+
+        {/* 4. Grid REORGANIZADO: Alertas (1/3) + Progresso Semanal (2/3) */}
+        <Grid container spacing={3}>
+          {/* Alertas - 4 colunas (1/3) */}
+          <Grid item xs={12} md={4}>
+            <AlertsSection alerts={alerts} />
+          </Grid>
+
+          {/* Progresso Semanal - 8 colunas (2/3) */}
+          <Grid item xs={12} md={8}>
+            <MotivationalSection weeklyData={weeklyData} />
+          </Grid>
         </Grid>
-        
-        {/* Card 2: Tarefas Concluídas */}
-        <Grid item xs={12} sm={6} md={4}>  {/* Mesmo layout responsivo */}
-          <Card sx={{ height: '100%' }}>   {/* Altura uniforme com o card anterior */}
-            <CardContent sx={{ textAlign: 'center' }}>  {/* Conteúdo centralizado */}
-              
-              {/* Ícone de tarefas concluídas */}
-              <CheckCircleIcon 
-                sx={{ 
-                  fontSize: 40,           // Tamanho do ícone: 40px
-                  color: 'success.main',  // Cor verde do tema (sucesso/concluído)
-                  mb: 1                   // Margin bottom: 8px
-                }} 
-              />
-              
-              {/* Título do card */}
-              <Typography variant="h6" component="h3" gutterBottom>
-                Tarefas Concluídas
-              </Typography>
-              
-              {/* Número de tarefas - destaque */}
-              <Typography variant="h2" sx={{ fontWeight: 'bold', color: 'success.main' }}>
-                12
-              </Typography>
-              
-            </CardContent>
-          </Card>
-        </Grid>
-        
-      </Grid>
-      
+      </Container>
     </Box>
   )
 }

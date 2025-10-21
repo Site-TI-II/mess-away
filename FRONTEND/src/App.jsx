@@ -5,7 +5,7 @@ import Layout from './components/layout/Layout';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
+import Dashboard from './pages/Dashboard/Dashboard';
 import Tarefas from './pages/Tarefas/Tarefas';
 import Gerenciador from './pages/Gerenciador'; 
 import Casas from './pages/Casas'; 
