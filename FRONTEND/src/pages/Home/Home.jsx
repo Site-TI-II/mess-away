@@ -15,10 +15,9 @@ import CtaSection from './components/CtaSection'
  * 2. ProblemSection - Cards explicando dores do usuário
  * 3. AudienceSection - Personas/target audience
  * 4. BenefitsSection - Benefícios da solução
- * 5. PricingSection - Versões gratuita e premium
- * 6. ImpactSection - Benefícios para sociedade
- * 7. CtaSection - Chamada final para download
- * 
+ * 5. ImpactSection - Benefícios para sociedade
+ * 6. CtaSection - Chamada final para download
+ *
  * Cada seção é um componente independente com suas próprias
  * responsabilidades, facilitando manutenção e reutilização.
  */

@@ -1,44 +1,48 @@
+// src/components/layout/Layout/Layout.jsx
+
 import { Box } from '@mui/material'
 import { Outlet } from 'react-router-dom'
+import { useTheme } from '@mui/material/styles'
 import Navbar from '../Navbar'
 import Footer from '../Footer'
 
 function Layout() {
-  // Container responsivo centralizado para consistência
-  const containerStyles = {
-    width: '100%',
-    maxWidth: { xs: '100%', sm: '600px', md: '900px', lg: '1200px' },
-    margin: '0 auto',
-    px: { xs: 2, sm: 3, md: 4, lg: 2 }
-  }
+  const theme = useTheme()
 
   return (
-    <Box sx={{
-      display: 'flex',
-      flexDirection: 'column',
-      minHeight: '100vh',
-      width: '100%',
-      bgcolor: 'background.default'
-    }}>
-      
-      {/* Header/Navbar - full width sem container */}
+    <Box 
+      sx={{
+        display: 'flex',          // ✅ Flex aqui está OK
+        flexDirection: 'column',  // ✅ Column aqui está OK
+        minHeight: '100vh',
+        width: '100%',
+        background: `linear-gradient(180deg, 
+          ${theme.palette.background.default} 0%, 
+          ${theme.palette.grey[50]} 100%
+        )`,
+        position: 'relative'
+      }}
+    >
       <Navbar />
-
-      {/* Main Content - com container responsivo */}
+      
       <Box
         component="main"
         sx={{
-          ...containerStyles,
           flex: 1,
-          py: { xs: 2, sm: 3, md: 4 }
+          width: '100%',
+          display: 'flex',           // ✅ Importante!
+          flexDirection: 'column',   // ✅ Importante!
+          animation: 'fadeIn 0.3s ease-in',
+          '@keyframes fadeIn': {
+            from: { opacity: 0, transform: 'translateY(10px)' },
+            to: { opacity: 1, transform: 'translateY(0)' }
+          }
         }}
       >
         <Outlet />
       </Box>
 
-      {/* Footer - full width sem container */}
       <Footer />
-      
     </Box>
   )
 }

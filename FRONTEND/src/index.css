@@ -1,53 +1,114 @@
 /* =============================================================================
-   INDEX.CSS - Estilos Globais e Configuração Base
-   =============================================================================
-   Este arquivo define a base CSS da aplicação React, configurando elementos
-   fundamentais como altura total, fonte padrão e comportamento do container raiz.
-   Complementa o Material-UI fornecendo configurações específicas do projeto.
+ INDEX.CSS - Estilos Globais e Configuração Base
+ =============================================================================
+ Este arquivo define a base CSS da aplicação React, configurando elementos
+ fundamentais como altura total, fonte padrão e comportamento do container raiz.
+ Complementa o Material-UI fornecendo configurações específicas do projeto.
 */
 
 /* -----------------------------------------------------------------------------
-   RESET UNIVERSAL - Todos os Elementos
-   -----------------------------------------------------------------------------
-   Aplica reset completo a todos os elementos HTML da página.
-   Garante comportamento consistente independente do navegador.
+ RESET UNIVERSAL - Todos os Elementos
+ -----------------------------------------------------------------------------
+ Aplica reset completo a todos os elementos HTML da página.
+ Garante comportamento consistente independente do navegador.
 */
-* {
-  margin: 0;                /* Remove margem padrão de todos os elementos */
-  padding: 0;               /* Remove padding padrão de todos os elementos */
-  box-sizing: border-box;   /* Inclui padding e border no cálculo da largura */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 /* -----------------------------------------------------------------------------
-   CONFIGURAÇÃO RAIZ - Altura Total e Fonte
-   -----------------------------------------------------------------------------
-   Configura os elementos fundamentais para ocupar 100% da viewport.
-   
-   html: Elemento raiz do documento
-   body: Corpo da página
-   #root: Container onde o React renderiza a aplicação
-   
-   Todos precisam ter height: 100% para layouts full-screen funcionarem.
+ CONFIGURAÇÃO RAIZ - Altura Total e Fonte
+ -----------------------------------------------------------------------------
+ Configura os elementos fundamentais para ocupar 100% da viewport.
 */
-html, body, #root {
-  height: 100%;             /* Altura total da viewport (100vh) */
-  width: 100%;              /* Largura total da viewport (100vw) */
-  margin: 0;                /* Sem margens (redundante, mas garante) */
-  padding: 0;               /* Sem padding (redundante, mas garante) */
-  font-family: 'Roboto', sans-serif;  /* Fonte padrão do Material Design */
+html {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
 }
 
 /* -----------------------------------------------------------------------------
-   CONTAINER REACT - Configuração do #root
-   -----------------------------------------------------------------------------
-   O elemento #root é onde toda a aplicação React é montada.
-   Configurado como flex container para permitir layouts flexíveis.
-   
-   Isso é especialmente importante para o Layout.jsx que usa:
-   - minHeight: '100vh'
-   - flexDirection: 'column'
+ CONTAINER REACT - Configuração do #root
+ -----------------------------------------------------------------------------
+ MUDANÇA IMPORTANTE: Removido flex-direction: column do #root
+ Agora cada componente controla seu próprio layout internamente.
+ Isso evita conflitos com Grid/Flex dos componentes filhos.
 */
 #root {
-  display: flex;            /* Transforma #root em flex container */
-  flex-direction: column;   /* Organiza filhos em coluna (vertical) */
+  min-height: 100vh;  /* Garante altura mínima da viewport */
+  width: 100%;
+  display: block;     /* ✅ MUDOU: block em vez de flex */
+}
+
+/* -----------------------------------------------------------------------------
+ FIX PARA WEBKIT FLEX
+ -----------------------------------------------------------------------------
+ Força prefixos corretos em navegadores baseados em Webkit (Chrome, Safari)
+*/
+.MuiBox-root {
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+/* Garante que flex funcione em todos os navegadores */
+[style*="display: flex"],
+[style*="display:flex"] {
+  display: -webkit-box !important;
+  display: -webkit-flex !important;
+  display: -ms-flexbox !important;
+  display: flex !important;
+}
+
+/* Fix específico para Grid do MUI */
+.MuiGrid-container {
+  display: -webkit-box !important;
+  display: -webkit-flex !important;
+  display: -ms-flexbox !important;
+  display: flex !important;
+  -webkit-flex-wrap: wrap !important;
+  -ms-flex-wrap: wrap !important;
+  flex-wrap: wrap !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.MuiGrid-item {
+  box-sizing: border-box;
+}
+
+/* -----------------------------------------------------------------------------
+ SCROLLBAR CUSTOMIZADA (Opcional - Melhora Estética)
+ -----------------------------------------------------------------------------
+*/
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
