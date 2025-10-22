@@ -50,5 +50,25 @@ public class UsuarioController {
                 return gson.toJson(new Error("DB error: " + e.getMessage()));
             }
         });
+
+        // trocar senha por email (simples, sem token)
+        post("/MessAway/usuarios/trocar-senha", (req, res) -> {
+            try {
+                var body = gson.fromJson(req.body(), java.util.Map.class);
+                String email = (String) body.get("email");
+                String newPassword = (String) body.get("newPassword");
+                boolean ok = dao.changePasswordByEmail(email, newPassword);
+                if (ok) {
+                    res.status(200);
+                    return gson.toJson(java.util.Map.of("status", "ok"));
+                } else {
+                    res.status(404);
+                    return gson.toJson(java.util.Map.of("status", "not_found"));
+                }
+            } catch (SQLException e) {
+                res.status(500);
+                return gson.toJson(new Error("DB error: " + e.getMessage()));
+            }
+        });
     }
 }

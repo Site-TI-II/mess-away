@@ -78,11 +78,32 @@ function Register() {
       return
     }
 
-    // Aqui você faria a chamada à API
-    console.log('Cadastro:', formData)
-    
-    // Simulando sucesso
-    navigate('/dashboard')
+    // Map frontend fields to backend model fields
+    const payload = {
+      nome: formData.name,
+      email: formData.email,
+      password: formData.password
+    }
+
+    fetch('http://localhost:4567/MessAway/usuarios', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text()
+          throw new Error(text || 'Erro ao cadastrar')
+        }
+        return res.json()
+      })
+      .then((data) => {
+        // registro criado com sucesso -> redireciona para home
+        navigate('/')
+      })
+      .catch((err) => {
+        setError(err.message || 'Erro ao conectar ao servidor')
+      })
   }
 
   return (

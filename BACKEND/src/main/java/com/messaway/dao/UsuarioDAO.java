@@ -81,4 +81,13 @@ public class UsuarioDAO {
             return stmt.executeUpdate() > 0;
         }
     }
+
+    public boolean changePasswordByEmail(String email, String newPassword) throws SQLException {
+        String sql = "UPDATE USUARIO SET senha = ? WHERE email = ?";
+        try (Connection conn = Database.connect(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, newPassword);
+            stmt.setString(2, email);
+            return stmt.executeUpdate() > 0;
+        }
+    }
 }
