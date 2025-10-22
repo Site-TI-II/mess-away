@@ -70,5 +70,59 @@ public class UsuarioController {
                 return gson.toJson(new Error("DB error: " + e.getMessage()));
             }
         });
+
+        // login simples: verifica email+password, seta cookie userId
+        post("/MessAway/login", (req, res) -> {
+            try {
+                java.util.Map body = gson.fromJson(req.body(), java.util.Map.class);
+                String email = (String) body.get("email");
+                String password = (String) body.get("password");
+                if (email == null || password == null) {
+                    res.status(400);
+                    return gson.toJson(java.util.Map.of("authenticated", false, "reason", "missing_fields"));
+                }
+                Usuario u = dao.findByEmail(email);
+                if (u == null || !password.equals(u.getPassword())) {
+                    res.status(401);
+                    return gson.toJson(java.util.Map.of("authenticated", false));
+                }
+                // set cookie (simple session)
+                res.cookie("userId", String.valueOf(u.getId()));
+                res.status(200);
+                return gson.toJson(java.util.Map.of("authenticated", true, "usuario", u));
+            } catch (SQLException e) {
+                res.status(500);
+                return gson.toJson(new Error("DB error: " + e.getMessage()));
+            }
+        });
+
+        // logout: remove cookie
+        post("/MessAway/logout", (req, res) -> {
+            res.removeCookie("userId");
+            res.status(204);
+            return "";
+        });
+
+        // check auth status: returns { authenticated: boolean, usuario?: {...} }
+        get("/MessAway/auth/status", (req, res) -> {
+            try {
+                String userId = req.cookie("userId");
+                if (userId == null) {
+                    res.status(200);
+                    return gson.toJson(java.util.Map.of("authenticated", false));
+                }
+                long id = Long.parseLong(userId);
+                Usuario u = dao.findById(id);
+                if (u == null) {
+                    res.status(200);
+                    return gson.toJson(java.util.Map.of("authenticated", false));
+                }
+                res.status(200);
+                return gson.toJson(java.util.Map.of("authenticated", true, "usuario", u));
+            } catch (SQLException e) {
+                res.status(500);
+                return gson.toJson(new Error("DB error: " + e.getMessage()));
+            }
+        });
     }
 }
