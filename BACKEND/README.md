@@ -1,4 +1,3 @@
-xxxx
 # 📘 README – Backend do Projeto MessAway
 
 Este repositório contém o backend do projeto **MessAway**, uma aplicação de gestão colaborativa de casas e tarefas. Ele foi desenvolvido com **Spring Boot** e utiliza **PostgreSQL** como sistema de banco de dados relacional.
