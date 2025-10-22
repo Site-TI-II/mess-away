@@ -19,6 +19,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import CloseIcon from '@mui/icons-material/Close';
 
+import { listarCasas, criarCasa, deletarCasa } from '../../api/casas';
+
 function Casas() {
   const [casas, setCasas] = useState([]);
   const [casaSelecionadaId, setCasaSelecionadaId] = useState(null);
@@ -32,29 +34,39 @@ function Casas() {
   const casaAtual = casas.find(c => c.id === casaSelecionadaId);
 
   useEffect(() => {
+    listarCasas().then(res => {
+      setCasas(res.data);
+      if (res.data.length > 0) {
+        setCasaSelecionadaId(res.data[0].id);
+      } else {
+        setCasaSelecionadaId(null);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
     if (!casas.find(c => c.id === casaSelecionadaId) && casas.length > 0) {
       setCasaSelecionadaId(casas[0].id);
     } else if (casas.length === 0) {
-        setCasaSelecionadaId(null);
+      setCasaSelecionadaId(null);
     }
   }, [casas, casaSelecionadaId]);
 
   const handleAdicionarCasa = () => {
     if (novoNomeCasa.trim() === '') return;
-    const novaCasa = {
-      id: Date.now(),
-      nome: novoNomeCasa,
-      imagem: `https://source.unsplash.com/random/400x400?house&sig=${Date.now()}`,
-      pessoas: []
-    };
-    setCasas([...casas, novaCasa]);
-    setNovoNomeCasa('');
-    setAddCasaDialogOpen(false);
+    const novaCasa = { nome: novoNomeCasa };
+    criarCasa(novaCasa).then(() => {
+      listarCasas().then(res => setCasas(res.data));
+      setNovoNomeCasa('');
+      setAddCasaDialogOpen(false);
+    });
   };
-  
+
   const handleDeletarCasa = (casaId) => {
-    if (window.confirm("Tem certeza que deseja deletar esta casa e todas as pessoas nela?")) {
-      setCasas(casas.filter(c => c.id !== casaId));
+    if (window.confirm("Tem certeza que deseja deletar esta casa?")) {
+      deletarCasa(casaId).then(() => {
+        listarCasas().then(res => setCasas(res.data));
+      });
     }
   };
 
@@ -67,7 +79,7 @@ function Casas() {
     };
     const novasCasas = casas.map(casa => {
       if (casa.id === casaSelecionadaId) {
-        return { ...casa, pessoas: [...casa.pessoas, pessoaParaAdicionar] };
+        return { ...casa, pessoas: [...(casa.pessoas || []), pessoaParaAdicionar] };
       }
       return casa;
     });
@@ -75,14 +87,14 @@ function Casas() {
     setNovoNomePessoa('');
     setAddPessoaDialogOpen(false);
   };
-  
+
   const handleRemoverPessoa = (pessoaId) => {
     const novasCasas = casas.map(casa => {
-        if (casa.id === casaSelecionadaId) {
-            const novasPessoas = casa.pessoas.filter(p => p.id !== pessoaId);
-            return { ...casa, pessoas: novasPessoas };
-        }
-        return casa;
+      if (casa.id === casaSelecionadaId) {
+        const novasPessoas = (casa.pessoas || []).filter(p => p.id !== pessoaId);
+        return { ...casa, pessoas: novasPessoas };
+      }
+      return casa;
     });
     setCasas(novasCasas);
   };
@@ -99,20 +111,19 @@ function Casas() {
 
   const handleSaveEdit = () => {
     if (editingText.trim() === '') return handleCancelEdit();
-    
     const novasCasas = casas.map(casa => {
-        if (casa.id === editingItemId) {
-            return { ...casa, nome: editingText };
-        }
-        if (casa.id === casaSelecionadaId) {
-            return {
-                ...casa,
-                pessoas: casa.pessoas.map(pessoa => 
-                    pessoa.id === editingItemId ? { ...pessoa, nome: editingText } : pessoa
-                )
-            };
-        }
-        return casa;
+      if (casa.id === editingItemId) {
+        return { ...casa, nome: editingText };
+      }
+      if (casa.id === casaSelecionadaId) {
+        return {
+          ...casa,
+          pessoas: (casa.pessoas || []).map(pessoa =>
+            pessoa.id === editingItemId ? { ...pessoa, nome: editingText } : pessoa
+          )
+        };
+      }
+      return casa;
     });
     setCasas(novasCasas);
     handleCancelEdit();
@@ -125,26 +136,36 @@ function Casas() {
 
   if (!casaAtual) {
     return (
-        <Box sx={{ p: 3, textAlign: 'center' }}>
-            <Typography variant="h5">Nenhuma casa cadastrada.</Typography>
-            <Button variant="contained" onClick={() => setAddCasaDialogOpen(true)} sx={{mt: 2}}>
-                Adicionar Primeira Casa
-            </Button>
-            <Dialog open={addCasaDialogOpen} onClose={() => setAddCasaDialogOpen(false)}>
-                <DialogTitle>Adicionar Nova Casa</DialogTitle>
-                <DialogContent>
-                    <TextField autoFocus margin="dense" label="Nome da Casa" type="text" fullWidth variant="standard" value={novoNomeCasa} onChange={(e) => setNovoNomeCasa(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAdicionarCasa()} />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setAddCasaDialogOpen(false)}>Cancelar</Button>
-                    <Button onClick={handleAdicionarCasa}>Salvar</Button>
-                </DialogActions>
-            </Dialog>
-        </Box>
+      <Box sx={{ p: 3, textAlign: 'center' }}>
+        <Typography variant="h5">Nenhuma casa cadastrada.</Typography>
+        <Button variant="contained" onClick={() => setAddCasaDialogOpen(true)} sx={{ mt: 2 }}>
+          Adicionar Primeira Casa
+        </Button>
+        <Dialog open={addCasaDialogOpen} onClose={() => setAddCasaDialogOpen(false)}>
+          <DialogTitle>Adicionar Nova Casa</DialogTitle>
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Nome da Casa"
+              type="text"
+              fullWidth
+              variant="standard"
+              value={novoNomeCasa}
+              onChange={(e) => setNovoNomeCasa(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAdicionarCasa()}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setAddCasaDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleAdicionarCasa}>Salvar</Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
     );
   }
 
-  const numeroDeLinhasVazias = Math.max(0, 8 - casaAtual.pessoas.length);
+  const numeroDeLinhasVazias = Math.max(0, 8 - (casaAtual.pessoas?.length || 0));
 
   return (
     <>
@@ -152,48 +173,82 @@ function Casas() {
         <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 3, alignItems: 'center' }}>
           {casas.map(casa => (
             <Box key={casa.id} sx={{ position: 'relative', mr: 1, mb: 1 }}>
-              <Button variant={casa.id === casaSelecionadaId ? "contained" : "outlined"} onClick={() => setCasaSelecionadaId(casa.id)} sx={{ pr: '30px' }}>
+              <Button
+                variant={casa.id === casaSelecionadaId ? "contained" : "outlined"}
+                onClick={() => setCasaSelecionadaId(casa.id)}
+                sx={{ pr: '30px' }}
+              >
                 {casa.nome}
               </Button>
-              <IconButton size="small" onClick={() => handleDeletarCasa(casa.id)} sx={{ position: 'absolute', top: 0, right: 0, p: '4px' }}>
+              <IconButton
+                size="small"
+                onClick={() => handleDeletarCasa(casa.id)}
+                sx={{ position: 'absolute', top: 0, right: 0, p: '4px' }}
+              >
                 <CloseIcon fontSize="small" />
               </IconButton>
             </Box>
           ))}
-          <Button variant="contained" onClick={() => setAddCasaDialogOpen(true)} sx={{ minWidth: '40px', p: '6px 12px' }}> <AddIcon /> </Button>
+          <Button variant="contained" onClick={() => setAddCasaDialogOpen(true)} sx={{ minWidth: '40px', p: '6px 12px' }}>
+            <AddIcon />
+          </Button>
         </Box>
 
         <Box sx={{ maxWidth: '450px', margin: '0 auto', backgroundColor: '#ffffff', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 3 }}>
             <Avatar alt={casaAtual.nome} src={casaAtual.imagem} sx={{ width: 120, height: 120, mb: 2 }} />
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                {editingItemId === casaAtual.id ? (
-                    <TextField value={editingText} onChange={(e) => setEditingText(e.target.value)} onKeyDown={handleEditKeyDown} onBlur={handleSaveEdit} autoFocus variant="standard" />
-                ) : (
-                    <>
-                        <Chip label={casaAtual.nome} sx={{ backgroundColor: '#e0e0e0', fontWeight: 'bold' }} />
-                        <IconButton size="small" onClick={() => handleStartEdit(casaAtual)} sx={{ ml: 1 }}> <EditIcon fontSize="small" /> </IconButton>
-                    </>
-                )}
+              {editingItemId === casaAtual.id ? (
+                <TextField
+                  value={editingText}
+                  onChange={(e) => setEditingText(e.target.value)}
+                  onKeyDown={handleEditKeyDown}
+                  onBlur={handleSaveEdit}
+                  autoFocus
+                  variant="standard"
+                />
+              ) : (
+                <>
+                  <Chip label={casaAtual.nome} sx={{ backgroundColor: '#e0e0e0', fontWeight: 'bold' }} />
+                  <IconButton size="small" onClick={() => handleStartEdit(casaAtual)} sx={{ ml: 1 }}>
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                </>
+              )}
             </Box>
           </Box>
 
           <List sx={{ p: 0 }}>
-            {casaAtual.pessoas.map(pessoa => (
+            {(casaAtual.pessoas || []).map(pessoa => (
               <ListItem key={pessoa.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #eeeeee', p: '8px 16px' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Avatar sx={{ width: 32, height: 32, mr: 2 }} alt={pessoa.nome} />
+                                    <Avatar sx={{ width: 32, height: 32, mr: 2 }} alt={pessoa.nome} />
                   {editingItemId === pessoa.id ? (
-                      <TextField value={editingText} onChange={(e) => setEditingText(e.target.value)} onKeyDown={handleEditKeyDown} onBlur={handleSaveEdit} autoFocus variant="standard" />
+                    <TextField
+                      value={editingText}
+                      onChange={(e) => setEditingText(e.target.value)}
+                      onKeyDown={handleEditKeyDown}
+                      onBlur={handleSaveEdit}
+                      autoFocus
+                      variant="standard"
+                    />
                   ) : (
-                      <>
-                        <Chip label={pessoa.nome} size="small" sx={{ backgroundColor: '#673ab7', color: 'white', fontWeight: 'bold', mr: 1 }} />
-                        <Chip label={pessoa.papel} size="small" />
-                        <IconButton size="small" onClick={() => handleStartEdit(pessoa)} sx={{ ml: 1 }}> <EditIcon fontSize="inherit" /> </IconButton>
-                      </>
+                    <>
+                      <Chip
+                        label={pessoa.nome}
+                        size="small"
+                        sx={{ backgroundColor: '#673ab7', color: 'white', fontWeight: 'bold', mr: 1 }}
+                      />
+                      <Chip label={pessoa.papel} size="small" />
+                      <IconButton size="small" onClick={() => handleStartEdit(pessoa)} sx={{ ml: 1 }}>
+                        <EditIcon fontSize="inherit" />
+                      </IconButton>
+                    </>
                   )}
                 </Box>
-                <IconButton size="small" color="error" onClick={() => handleRemoverPessoa(pessoa.id)}> <DeleteIcon /> </IconButton>
+                <IconButton size="small" color="error" onClick={() => handleRemoverPessoa(pessoa.id)}>
+                  <DeleteIcon />
+                </IconButton>
               </ListItem>
             ))}
 
@@ -203,33 +258,58 @@ function Casas() {
                 <Typography variant="body1" sx={{ fontWeight: 'bold' }}>Adicionar Pessoa</Typography>
               </Box>
             </ListItem>
-            
+
             {Array.from({ length: numeroDeLinhasVazias }).map((_, index) => (
-              <ListItem key={`empty-${index}`} sx={{ height: '48px', backgroundColor: '#fff0f5', borderTop: '1px solid #e0e0e0' }} />
+              <ListItem
+                key={`empty-${index}`}
+                sx={{ height: '48px', backgroundColor: '#fff0f5', borderTop: '1px solid #e0e0e0' }}
+              />
             ))}
           </List>
         </Box>
       </Box>
 
+      {/* Diálogo para adicionar pessoa */}
       <Dialog open={addPessoaDialogOpen} onClose={() => setAddPessoaDialogOpen(false)}>
         <DialogTitle>Adicionar Nova Pessoa</DialogTitle>
         <DialogContent>
-            <TextField autoFocus margin="dense" label="Nome da Pessoa" type="text" fullWidth variant="standard" value={novoNomePessoa} onChange={(e) => setNovoNomePessoa(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAdicionarPessoa()} />
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Nome da Pessoa"
+            type="text"
+            fullWidth
+            variant="standard"
+            value={novoNomePessoa}
+            onChange={(e) => setNovoNomePessoa(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleAdicionarPessoa()}
+          />
         </DialogContent>
         <DialogActions>
-            <Button onClick={() => setAddPessoaDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleAdicionarPessoa}>Salvar</Button>
+          <Button onClick={() => setAddPessoaDialogOpen(false)}>Cancelar</Button>
+          <Button onClick={handleAdicionarPessoa}>Salvar</Button>
         </DialogActions>
       </Dialog>
-      
+
+      {/* Diálogo para adicionar casa */}
       <Dialog open={addCasaDialogOpen} onClose={() => setAddCasaDialogOpen(false)}>
         <DialogTitle>Adicionar Nova Casa</DialogTitle>
         <DialogContent>
-            <TextField autoFocus margin="dense" label="Nome da Casa" type="text" fullWidth variant="standard" value={novoNomeCasa} onChange={(e) => setNovoNomeCasa(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAdicionarCasa()} />
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Nome da Casa"
+            type="text"
+            fullWidth
+            variant="standard"
+            value={novoNomeCasa}
+            onChange={(e) => setNovoNomeCasa(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleAdicionarCasa()}
+          />
         </DialogContent>
         <DialogActions>
-            <Button onClick={() => setAddCasaDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleAdicionarCasa}>Salvar</Button>
+          <Button onClick={() => setAddCasaDialogOpen(false)}>Cancelar</Button>
+          <Button onClick={handleAdicionarCasa}>Salvar</Button>
         </DialogActions>
       </Dialog>
     </>
