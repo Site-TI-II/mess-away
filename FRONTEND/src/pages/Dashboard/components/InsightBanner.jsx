@@ -1,9 +1,9 @@
 
-import { useState } from 'react'
-import { Box, Typography, Button, IconButton, Paper } from '@mui/material'
+import { useState, useEffect } from 'react'
+import { Box, Typography, Button, IconButton, Paper, CircularProgress } from '@mui/material'
 import { Close as CloseIcon, TrendingUp as TrendingUpIcon } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
-import { getRandomInsight } from '../constants/dashboardConstants'
+import { listInsights } from '../../../api/insights'
 
 /**
  * InsightBanner - Banner destacado com insight inteligente do dia
@@ -20,19 +20,71 @@ import { getRandomInsight } from '../constants/dashboardConstants'
 function InsightBanner({ insight: propInsight }) {
   const theme = useTheme()
   const [isVisible, setIsVisible] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [insights, setInsights] = useState([])
+  const [currentInsightIndex, setCurrentInsightIndex] = useState(0)
   
-  // Usa insight passado por prop ou pega um aleatório
-  const insight = propInsight || getRandomInsight()
+  // Carrega insights do backend
+  useEffect(() => {
+    if (!propInsight) {
+      setLoading(true)
+      listInsights()
+        .then(data => {
+          setInsights(data)
+          setError(null)
+        })
+        .catch(err => {
+          console.error('Erro ao carregar insights:', err)
+          setError('Não foi possível carregar os insights.')
+        })
+        .finally(() => setLoading(false))
+    }
+  }, [propInsight])
+
+  // Rotaciona insights a cada 30 segundos
+  useEffect(() => {
+    if (insights.length > 1) {
+      const timer = setInterval(() => {
+        setCurrentInsightIndex(current => 
+          current + 1 >= insights.length ? 0 : current + 1)
+      }, 30000)
+      return () => clearInterval(timer)
+    }
+  }, [insights.length])
+
+  // Usa insight passado por prop ou um dos carregados
+  const insight = propInsight || (insights.length > 0 ? insights[currentInsightIndex] : null)
 
   // Handler para fechar o banner
   const handleClose = () => {
     setIsVisible(false)
-    // Aqui poderia salvar no localStorage que o usuário fechou hoje
     localStorage.setItem('insightBannerClosed', new Date().toDateString())
   }
 
   // Se não está visível, não renderiza nada
   if (!isVisible) return null
+
+  // Mostra loading
+  if (loading) {
+    return (
+      <Paper sx={{ p: 3, textAlign: 'center' }}>
+        <CircularProgress />
+      </Paper>
+    )
+  }
+
+  // Mostra erro
+  if (error) {
+    return (
+      <Paper sx={{ p: 3, textAlign: 'center', color: 'error.main' }}>
+        {error}
+      </Paper>
+    )
+  }
+
+  // Se não tem insight, não renderiza nada
+  if (!insight) return null
 
   return (
     <Paper

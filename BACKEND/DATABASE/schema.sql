@@ -129,3 +129,39 @@ CREATE TABLE TAREFA (
     FOREIGN KEY (id_categoria) REFERENCES CATEGORIA(id_categoria)
 
 );
+
+-- 7. ACHIEVEMENT (Conquistas)
+
+CREATE TABLE ACHIEVEMENT (
+    id_achievement SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    icon VARCHAR(10) NOT NULL,
+    description TEXT NOT NULL,
+    requirement_type VARCHAR(50) NOT NULL,
+    requirement_value INT NOT NULL,
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 8. USUARIO_ACHIEVEMENT (Conquistas do usuário)
+
+CREATE TABLE USUARIO_ACHIEVEMENT (
+    id_usuario_achievement SERIAL PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    id_achievement INT NOT NULL,
+    data_obtencao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_usuario) REFERENCES USUARIO(id_usuario),
+    FOREIGN KEY (id_achievement) REFERENCES ACHIEVEMENT(id_achievement)
+);
+
+-- 9. INSIGHT (Insights inteligentes)
+
+CREATE TABLE INSIGHT (
+    id_insight SERIAL PRIMARY KEY,
+    type VARCHAR(50) NOT NULL,
+    icon VARCHAR(10) NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    message TEXT NOT NULL,
+    color VARCHAR(20) NOT NULL,
+    active BOOLEAN DEFAULT TRUE,
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

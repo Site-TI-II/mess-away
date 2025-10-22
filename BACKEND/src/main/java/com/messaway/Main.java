@@ -3,6 +3,8 @@ package com.messaway;
 import com.messaway.controller.CasaController;
 import com.messaway.controller.UsuarioCasaController;
 import com.messaway.controller.UsuarioController;
+import com.messaway.controller.AchievementController;
+import com.messaway.controller.InsightController;
 
 import static spark.Spark.*;
 
@@ -26,6 +28,8 @@ public class Main {
         CasaController.registerRoutes();
         UsuarioCasaController.registerRoutes();
         UsuarioController.registerRoutes();
+        AchievementController.registerRoutes();
+        InsightController.registerRoutes();
 
         // Mensagem de inicialização
         System.out.println("🚀 Servidor Spark iniciado na porta 4567");
