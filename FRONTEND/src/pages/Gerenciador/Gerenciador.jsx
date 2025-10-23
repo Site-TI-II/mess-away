@@ -14,11 +14,11 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router-dom";
 import {
-  getGastosByCasa,
-  createGasto,
-  deleteGasto,
-  setMetaGasto,
-  getMetaGasto,
+  getGastosByUsuario,
+  createGastoUsuario,
+  deleteGastoUsuario,
+  setMetaGastoUsuario,
+  getMetaGastoUsuario,
 } from "../../api/gastos";
 
 function Gerenciador() {
@@ -29,7 +29,7 @@ function Gerenciador() {
   const [nomeGasto, setNomeGasto] = useState("");
   const [valorGasto, setValorGasto] = useState("");
   const [gastos, setGastos] = useState([]);
-  const [casaId, setCasaId] = useState(null);
+  const [usuarioId, setUsuarioId] = useState(null);
 
   useEffect(() => {
     const userJson = localStorage.getItem("user");
@@ -39,29 +39,21 @@ function Gerenciador() {
     }
     
     const user = JSON.parse(userJson);
-    let casaIdFromStorage = user.casaId || user.idCasa;
-    
-    // If casaId not in user object, try to get it from the account
-    if (!casaIdFromStorage && user.idConta) {
-      // We'll fetch it from the backend - for now just redirect to dashboard
-      console.log("User doesn't have casaId, redirecting to dashboard");
-      navigate("/dashboard");
+    // O login salva user.usuario com os dados do usuário (id, nome, email...)
+    // ou pode salvar direto se não houver .usuario
+    const id = user?.id || user?.usuario?.id;
+    if (!id) {
+      console.error('No user id found:', user);
+      navigate("/login");
       return;
     }
-    
-    if (!casaIdFromStorage) {
-      console.log("No casaId found, redirecting to home");
-      navigate("/");
-      return;
-    }
-    
-    setCasaId(casaIdFromStorage);
+    setUsuarioId(id);
 
     const loadData = async () => {
       try {
         const [gastosData, metaData] = await Promise.all([
-          getGastosByCasa(casaIdFromStorage),
-          getMetaGasto(casaIdFromStorage),
+          getGastosByUsuario(id),
+          getMetaGastoUsuario(id),
         ]);
         setGastos(gastosData);
         if (metaData && !metaData.message) {
@@ -80,11 +72,11 @@ function Gerenciador() {
 
   // Função para adicionar gasto
   const adicionarGasto = async () => {
-    if (nomeGasto.trim() && valorGasto.trim() && !isNaN(valorGasto) && casaId) {
+    if (nomeGasto.trim() && valorGasto.trim() && !isNaN(valorGasto) && usuarioId) {
       try {
         setError(null);
-        const novoGasto = await createGasto(
-          casaId,
+        const novoGasto = await createGastoUsuario(
+          usuarioId,
           nomeGasto.trim(),
           parseFloat(valorGasto)
         );
@@ -101,7 +93,7 @@ function Gerenciador() {
   const removerGasto = async (idGasto) => {
     try {
       setError(null);
-      await deleteGasto(idGasto);
+      await deleteGastoUsuario(idGasto);
       setGastos(gastos.filter((item) => item.idGasto !== idGasto));
     } catch (err) {
       setError("Erro ao remover gasto. Por favor, tente novamente.");
@@ -110,10 +102,10 @@ function Gerenciador() {
 
   // Função para atualizar objetivo
   const atualizarObjetivo = async (novoObjetivo) => {
-    if (!casaId || !novoObjetivo || isNaN(novoObjetivo)) return;
+    if (!usuarioId || !novoObjetivo || isNaN(novoObjetivo)) return;
     try {
       setError(null);
-      await setMetaGasto(casaId, parseFloat(novoObjetivo));
+      await setMetaGastoUsuario(usuarioId, parseFloat(novoObjetivo));
       setObjetivo(novoObjetivo);
     } catch (err) {
       setError("Erro ao atualizar meta. Por favor, tente novamente.");

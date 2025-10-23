@@ -40,7 +40,7 @@ public class Main {
         InsightController.registerRoutes();
     com.messaway.controller.ContaController.registerRoutes();
 
-        // Rotas de Gastos (dual routes for compatibility)
+    // Rotas de Gastos por Casa (compatibilidade)
         get("/api/casa/:idCasa/gastos", GastoController::getAllGastosByCasa);
         get("/MessAway/casa/:idCasa/gastos", GastoController::getAllGastosByCasa);
         
@@ -55,6 +55,13 @@ public class Main {
         
         get("/api/casa/:idCasa/meta-gasto", GastoController::getMetaGasto);
         get("/MessAway/casa/:idCasa/meta-gasto", GastoController::getMetaGasto);
+
+    // Rotas de Gastos por Usuário (novo gerenciador individual)
+    get("/api/usuario/:idUsuario/gastos", GastoController::getAllGastosByUsuario);
+    post("/api/gastos/usuario", GastoController::createGastoUsuario);
+    delete("/api/gastos/usuario/:idGastoUsuario", GastoController::deleteGastoUsuario);
+    post("/api/usuario/meta-gasto", GastoController::setMetaGastoUsuario);
+    get("/api/usuario/:idUsuario/meta-gasto", GastoController::getMetaGastoUsuario);
 
         // Mensagem de inicialização
         awaitInitialization();
