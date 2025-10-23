@@ -17,22 +17,16 @@ public class CasaController {
     public static void registerRoutes() {
         Gson gson = new Gson();
         
+        // Defer CORS header management to Main.java (global before filter).
+        // Still respond to OPTIONS preflight requests here if required by specific routes.
         options("/*", (request, response) -> {
-            String accessControlRequestHeaders = request.headers("Access-Control-Request-Headers");
-            if (accessControlRequestHeaders != null) {
-                response.header("Access-Control-Allow-Headers", accessControlRequestHeaders);
-            }
-            String accessControlRequestMethod = request.headers("Access-Control-Request-Method");
-            if (accessControlRequestMethod != null) {
-                response.header("Access-Control-Allow-Methods", accessControlRequestMethod);
-            }
+            // Let Main.java set the standard CORS headers. For preflight, reply OK.
+            response.status(200);
             return "OK";
         });
 
+        // Set default response content type for this controller's routes
         before((request, response) -> {
-            response.header("Access-Control-Allow-Origin", "*");
-            response.header("Access-Control-Allow-Methods", "GET,POST,DELETE,PUT,OPTIONS");
-            response.header("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Requested-With,Content-Length,Accept,Origin");
             response.type("application/json");
         });
 

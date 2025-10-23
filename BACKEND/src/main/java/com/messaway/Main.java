@@ -15,9 +15,16 @@ public class Main {
 
         // Habilita CORS para permitir chamadas do frontend
         before((req, res) -> {
-            res.header("Access-Control-Allow-Origin", "*");
-            res.header("Access-Control-Allow-Methods", "GET,POST,DELETE,PUT,OPTIONS");
-            res.header("Access-Control-Allow-Headers", "Content-Type,Authorization");
+            // Only set CORS headers if they aren't already present to avoid duplicates
+            if (res.raw().getHeader("Access-Control-Allow-Origin") == null) {
+                res.header("Access-Control-Allow-Origin", "*");
+            }
+            if (res.raw().getHeader("Access-Control-Allow-Methods") == null) {
+                res.header("Access-Control-Allow-Methods", "GET,POST,DELETE,PUT,OPTIONS");
+            }
+            if (res.raw().getHeader("Access-Control-Allow-Headers") == null) {
+                res.header("Access-Control-Allow-Headers", "Content-Type,Authorization");
+            }
         });
 
         options("/*", (req, res) -> {
