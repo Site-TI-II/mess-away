@@ -15,6 +15,7 @@ import java.sql.Types;
 import java.util.List;
 
 import static spark.Spark.*;
+import spark.Route;
 
 public class UsuarioController {
     public static void registerRoutes() {
@@ -79,7 +80,7 @@ public class UsuarioController {
         });
 
         // Registro (cria usuário e opcionalmente uma conta ou associa a conta existente)
-        post("/api/auth/register", (req, res) -> {
+        Route registerRoute = (req, res) -> {
             try (var conn = Database.getConnection()) {
                 conn.setAutoCommit(false);
                 JsonObject body = JsonUtil.parse(req.body()).getAsJsonObject();
@@ -112,6 +113,7 @@ public class UsuarioController {
                 }
 
                 Integer createdContaId = null;
+                boolean createProfile = false;
                 // If request asks to create conta
                 if (body.has("conta") && body.getAsJsonObject("conta").has("create") && body.getAsJsonObject("conta").get("create").getAsBoolean()) {
                     JsonObject contaObj = body.getAsJsonObject("conta");
@@ -119,6 +121,10 @@ public class UsuarioController {
                     String contaEmail = contaObj.has("email") ? contaObj.get("email").getAsString() : email;
                     String contaSenha = contaObj.has("senha") ? contaObj.get("senha").getAsString() : password;
                     Integer idCasa = contaObj.has("idCasa") && !contaObj.get("idCasa").isJsonNull() ? contaObj.get("idCasa").getAsInt() : null;
+                    // optional flag to create initial profile mapping
+                    if (contaObj.has("createProfile")) {
+                        createProfile = contaObj.get("createProfile").getAsBoolean();
+                    }
 
                     // If no idCasa provided, create a new CASA and set its id to the conta
                     if (idCasa == null) {
@@ -160,7 +166,7 @@ public class UsuarioController {
                 }
 
                 // If we have a conta id (created or existing), associate user to conta
-                if (createdContaId != null) {
+                if (createdContaId != null && (createProfile || body.has("apelido"))) {
                     String apelido = body.has("apelido") ? body.get("apelido").getAsString() : nome;
                     String cor = body.has("cor") ? body.get("cor").getAsString() : null;
                     String permissao = body.has("permissao") ? body.get("permissao").getAsString() : "morador";
@@ -187,10 +193,13 @@ public class UsuarioController {
                 res.status(500);
                 return gson.toJson(new Error("DB error: " + e.getMessage()));
             }
-        });
+        };
+        // Support both /MessAway and /api paths (backward compatibility)
+        post("/MessAway/auth/register", registerRoute);
+        post("/api/auth/register", registerRoute);
 
-        // login simples: verifica email+password, seta cookie userId
-        post("/api/auth/login", (req, res) -> {
+    // login simples: verifica email+password, seta cookie userId
+        Route loginRoute = (req, res) -> {
             try {
                 java.util.Map<String, Object> body = gson.fromJson(req.body(), java.util.Map.class);
                 String email = (String) body.get("email");
@@ -217,6 +226,18 @@ public class UsuarioController {
                 } catch (Exception ex) {
                     // ignore lookup errors, login still succeeds
                 }
+                // Fallback: owner by email (account created during register without mapping)
+                if (idConta == null) {
+                    try (var conn = Database.getConnection();
+                         var pst = conn.prepareStatement("SELECT id_conta FROM CONTA WHERE email = ? LIMIT 1")) {
+                        pst.setString(1, u.getEmail());
+                        try (var rs = pst.executeQuery()) {
+                            if (rs.next()) idConta = rs.getInt("id_conta");
+                        }
+                    } catch (Exception ex) {
+                        // ignore
+                    }
+                }
 
                 res.status(200);
                 if (idConta != null) {
@@ -228,7 +249,10 @@ public class UsuarioController {
                 res.status(500);
                 return gson.toJson(new Error("DB error: " + e.getMessage()));
             }
-        });
+        };
+        // Support both /MessAway and /api paths
+        post("/MessAway/auth/login", loginRoute);
+        post("/api/auth/login", loginRoute);
 
         // logout: remove cookie
         post("/MessAway/logout", (req, res) -> {

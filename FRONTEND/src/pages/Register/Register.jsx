@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { API_URL } from '../../api/config'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -89,7 +90,8 @@ function Register() {
       }
     }
 
-    fetch('http://localhost:4567/api/auth/register', {
+  // Use centralized API_URL and /MessAway path
+  fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)

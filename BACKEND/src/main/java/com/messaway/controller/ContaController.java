@@ -16,6 +16,11 @@ import static spark.Spark.*;
 
 public class ContaController {
     public static void registerRoutes() {
+        // Support both /MessAway and /api paths
+        post("/MessAway/contas", (req, res) -> createConta(req, res));
+        post("/MessAway/contas/:id/usuarios", (req, res) -> addUsuarioToConta(req, res));
+        get("/MessAway/contas/:id/usuarios", (req, res) -> listUsuariosByConta(req, res));
+
         post("/api/contas", (req, res) -> createConta(req, res));
         post("/api/contas/:id/usuarios", (req, res) -> addUsuarioToConta(req, res));
         get("/api/contas/:id/usuarios", (req, res) -> listUsuariosByConta(req, res));

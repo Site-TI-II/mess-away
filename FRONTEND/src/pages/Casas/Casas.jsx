@@ -48,14 +48,13 @@ function Casas() {
     if (user && user.idConta) {
       listUsuariosByConta(user.idConta).then((res) => {
         // res is array of ContaUsuario objects
-        // Map them into casa structures by id_casa if needed; for now, append them to the first casa
         if (res && res.length > 0) {
-          // attach profiles to casa with matching id_casa if exists, otherwise to first casa
+          // Set profiles for the first casa to the server result (overwrite to avoid duplicates)
           setCasas(prev => {
             if (!prev || prev.length === 0) return prev;
             const updated = [...prev];
-            // simplistic: attach all profiles to selected casa
-            updated[0].pessoas = (updated[0].pessoas || []).concat(res.map(p => ({ id: p.id, nome: p.apelido || 'Morador', papel: p.permissao || 'Membro', cor: p.cor })));
+            const mapped = res.map(p => ({ id: p.id, nome: p.apelido || 'Morador', papel: p.permissao || 'Membro', cor: p.cor }));
+            updated[0] = { ...updated[0], pessoas: mapped };
             return updated;
           });
         }
@@ -111,7 +110,13 @@ function Casas() {
       // res is created ContaUsuario
       const novasCasas = casas.map(casa => {
         if (casa.id === casaSelecionadaId || casaSelecionadaId == null) {
-          return { ...casa, pessoas: [...(casa.pessoas || []), { id: res.id, nome: res.apelido || novoNomePessoa, papel: res.permissao || 'Membro', cor: res.cor }] };
+          const novaPessoa = { id: res.id, nome: res.apelido || novoNomePessoa, papel: res.permissao || 'Membro', cor: res.cor };
+          const existentes = casa.pessoas || [];
+          const dedup = [...existentes, novaPessoa].reduce((acc, p) => {
+            if (!acc.some(x => x.id === p.id)) acc.push(p);
+            return acc;
+          }, []);
+          return { ...casa, pessoas: dedup };
         }
         return casa;
       });
