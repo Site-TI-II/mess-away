@@ -3,9 +3,9 @@ package com.messaway.model;
 import java.sql.Timestamp;
 
 public class ContaUsuario {
-    private int id;
-    private int idConta;
-    private int idUsuario;
+    private Integer id;
+    private Integer idConta;
+    private Integer idUsuario;
     private String apelido;
     private String cor;
     private String permissao;
@@ -13,7 +13,7 @@ public class ContaUsuario {
 
     public ContaUsuario() {}
 
-    public ContaUsuario(int id, int idConta, int idUsuario, String apelido, String cor, String permissao, Timestamp dataAssociacao) {
+    public ContaUsuario(Integer id, Integer idConta, Integer idUsuario, String apelido, String cor, String permissao, Timestamp dataAssociacao) {
         this.id = id;
         this.idConta = idConta;
         this.idUsuario = idUsuario;
@@ -23,27 +23,27 @@ public class ContaUsuario {
         this.dataAssociacao = dataAssociacao;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    public int getIdConta() {
+    public Integer getIdConta() {
         return idConta;
     }
 
-    public void setIdConta(int idConta) {
+    public void setIdConta(Integer idConta) {
         this.idConta = idConta;
     }
 
-    public int getIdUsuario() {
+    public Integer getIdUsuario() {
         return idUsuario;
     }
 
-    public void setIdUsuario(int idUsuario) {
+    public void setIdUsuario(Integer idUsuario) {
         this.idUsuario = idUsuario;
     }
 

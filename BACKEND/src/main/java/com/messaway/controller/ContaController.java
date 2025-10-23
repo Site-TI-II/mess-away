@@ -65,25 +65,27 @@ public class ContaController {
         int idConta = Integer.parseInt(req.params(":id"));
         try (Connection conn = Database.getConnection()) {
             JsonObject body = JsonUtil.parse(req.body()).getAsJsonObject();
-            int idUsuario = body.get("idUsuario").getAsInt();
+            Integer idUsuario = body.has("idUsuario") && !body.get("idUsuario").isJsonNull() ? body.get("idUsuario").getAsInt() : null;
             String apelido = body.has("apelido") ? body.get("apelido").getAsString() : null;
             String cor = body.has("cor") ? body.get("cor").getAsString() : null;
             String permissao = body.has("permissao") ? body.get("permissao").getAsString() : null;
 
+
             String sql = "INSERT INTO CONTA_USUARIO (id_conta, id_usuario, apelido, cor, permissao) VALUES (?, ?, ?, ?, ?) RETURNING *";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, idConta);
-                stmt.setInt(2, idUsuario);
+                if (idUsuario != null) stmt.setInt(2, idUsuario); else stmt.setNull(2, Types.INTEGER);
                 stmt.setString(3, apelido);
                 stmt.setString(4, cor);
                 stmt.setString(5, permissao);
 
                 try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
+                        Integer rsIdUsuario = rs.getObject("id_usuario") != null ? rs.getInt("id_usuario") : null;
                         ContaUsuario cu = new ContaUsuario(
                             rs.getInt("id_conta_usuario"),
                             rs.getInt("id_conta"),
-                            rs.getInt("id_usuario"),
+                            rsIdUsuario,
                             rs.getString("apelido"),
                             rs.getString("cor"),
                             rs.getString("permissao"),
@@ -112,10 +114,11 @@ public class ContaController {
                 stmt.setInt(1, idConta);
                 try (ResultSet rs = stmt.executeQuery()) {
                     while (rs.next()) {
+                        Integer rsIdUsuario = rs.getObject("id_usuario") != null ? rs.getInt("id_usuario") : null;
                         ContaUsuario cu = new ContaUsuario(
                             rs.getInt("id_conta_usuario"),
                             rs.getInt("id_conta"),
-                            rs.getInt("id_usuario"),
+                            rsIdUsuario,
                             rs.getString("apelido"),
                             rs.getString("cor"),
                             rs.getString("permissao"),

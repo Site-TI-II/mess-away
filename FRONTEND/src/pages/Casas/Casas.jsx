@@ -20,6 +20,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import CloseIcon from '@mui/icons-material/Close';
 
 import { listarCasas, criarCasa, deletarCasa } from '../../api/casas';
+import { listUsuariosByConta, addUsuarioToConta } from '../../api/contas';
 
 function Casas() {
   const [casas, setCasas] = useState([]);
@@ -34,6 +35,7 @@ function Casas() {
   const casaAtual = casas.find(c => c.id === casaSelecionadaId);
 
   useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
     listarCasas().then(res => {
       setCasas(res.data);
       if (res.data.length > 0) {
@@ -42,6 +44,23 @@ function Casas() {
         setCasaSelecionadaId(null);
       }
     });
+    // load profiles for conta (if available)
+    if (user && user.idConta) {
+      listUsuariosByConta(user.idConta).then((res) => {
+        // res is array of ContaUsuario objects
+        // Map them into casa structures by id_casa if needed; for now, append them to the first casa
+        if (res && res.length > 0) {
+          // attach profiles to casa with matching id_casa if exists, otherwise to first casa
+          setCasas(prev => {
+            if (!prev || prev.length === 0) return prev;
+            const updated = [...prev];
+            // simplistic: attach all profiles to selected casa
+            updated[0].pessoas = (updated[0].pessoas || []).concat(res.map(p => ({ id: p.id, nome: p.apelido || 'Morador', papel: p.permissao || 'Membro', cor: p.cor })));
+            return updated;
+          });
+        }
+      });
+    }
   }, []);
 
   useEffect(() => {
@@ -55,11 +74,21 @@ function Casas() {
   const handleAdicionarCasa = () => {
     if (novoNomeCasa.trim() === '') return;
     const novaCasa = { nome: novoNomeCasa };
-    criarCasa(novaCasa).then(() => {
-      listarCasas().then(res => setCasas(res.data));
-      setNovoNomeCasa('');
-      setAddCasaDialogOpen(false);
-    });
+    criarCasa(novaCasa)
+      .then((response) => {
+        console.log('Casa criada com sucesso:', response.data);
+        return listarCasas();
+      })
+      .then(res => {
+        console.log('Casas atualizadas:', res.data);
+        setCasas(res.data);
+        setNovoNomeCasa('');
+        setAddCasaDialogOpen(false);
+      })
+      .catch(error => {
+        console.error('Erro ao criar casa:', error);
+        alert(error.response?.data?.message || 'Erro ao criar casa. Por favor, tente novamente.');
+      });
   };
 
   const handleDeletarCasa = (casaId) => {
@@ -72,20 +101,26 @@ function Casas() {
 
   const handleAdicionarPessoa = () => {
     if (novoNomePessoa.trim() === '') return;
-    const pessoaParaAdicionar = {
-      id: Date.now(),
-      nome: novoNomePessoa,
-      papel: 'Membro'
-    };
-    const novasCasas = casas.map(casa => {
-      if (casa.id === casaSelecionadaId) {
-        return { ...casa, pessoas: [...(casa.pessoas || []), pessoaParaAdicionar] };
-      }
-      return casa;
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    if (!user || !user.idConta) {
+      alert('Conta não encontrada. Faça login ou crie uma conta primeiro.');
+      return;
+    }
+    // call backend to create profile (no idUsuario)
+    addUsuarioToConta(user.idConta, { apelido: novoNomePessoa, cor: '#673ab7', permissao: 'Membro' }).then((res) => {
+      // res is created ContaUsuario
+      const novasCasas = casas.map(casa => {
+        if (casa.id === casaSelecionadaId || casaSelecionadaId == null) {
+          return { ...casa, pessoas: [...(casa.pessoas || []), { id: res.id, nome: res.apelido || novoNomePessoa, papel: res.permissao || 'Membro', cor: res.cor }] };
+        }
+        return casa;
+      });
+      setCasas(novasCasas);
+      setNovoNomePessoa('');
+      setAddPessoaDialogOpen(false);
+    }).catch(() => {
+      alert('Erro ao adicionar pessoa');
     });
-    setCasas(novasCasas);
-    setNovoNomePessoa('');
-    setAddPessoaDialogOpen(false);
   };
 
   const handleRemoverPessoa = (pessoaId) => {

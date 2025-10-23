@@ -10,10 +10,10 @@ public class Database {
         : "jdbc:postgresql://localhost:5432/gestao_casas";
     private static final String USER = System.getenv("MESSAWAY_DB_USER") != null 
         ? System.getenv("MESSAWAY_DB_USER") 
-        : "seu_usuario";
+        : "postgres";
     private static final String PASSWORD = System.getenv("MESSAWAY_DB_PASSWORD") != null 
         ? System.getenv("MESSAWAY_DB_PASSWORD") 
-        : "sua_senha";
+        : "postgres";
 
     public static Connection connect() throws SQLException {
         return getConnection();

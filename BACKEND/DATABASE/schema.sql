@@ -211,7 +211,8 @@ CREATE TABLE CONTA (
 CREATE TABLE CONTA_USUARIO (
     id_conta_usuario SERIAL PRIMARY KEY,
     id_conta INT NOT NULL REFERENCES CONTA(id_conta) ON DELETE CASCADE,
-    id_usuario INT NOT NULL REFERENCES USUARIO(id_usuario) ON DELETE CASCADE,
+    -- id_usuario can be NULL for profile-only entries (lightweight profiles not tied to a full USUARIO account)
+    id_usuario INT NULL REFERENCES USUARIO(id_usuario) ON DELETE CASCADE,
     apelido VARCHAR(100),
     cor VARCHAR(50),
     permissao VARCHAR(50),

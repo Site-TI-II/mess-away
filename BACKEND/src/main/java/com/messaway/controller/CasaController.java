@@ -3,6 +3,7 @@ package com.messaway.controller;
 import com.google.gson.Gson;
 import com.messaway.db.Database;
 import com.messaway.model.Casa;
+import com.messaway.model.ErrorResponse;
 import spark.Request;
 import spark.Response;
 
@@ -15,28 +16,89 @@ import static spark.Spark.*;
 public class CasaController {
     public static void registerRoutes() {
         Gson gson = new Gson();
+        
+        options("/*", (request, response) -> {
+            String accessControlRequestHeaders = request.headers("Access-Control-Request-Headers");
+            if (accessControlRequestHeaders != null) {
+                response.header("Access-Control-Allow-Headers", accessControlRequestHeaders);
+            }
+            String accessControlRequestMethod = request.headers("Access-Control-Request-Method");
+            if (accessControlRequestMethod != null) {
+                response.header("Access-Control-Allow-Methods", accessControlRequestMethod);
+            }
+            return "OK";
+        });
+
+        before((request, response) -> {
+            response.header("Access-Control-Allow-Origin", "*");
+            response.header("Access-Control-Allow-Methods", "GET,POST,DELETE,PUT,OPTIONS");
+            response.header("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Requested-With,Content-Length,Accept,Origin");
+            response.type("application/json");
+        });
 
         post("/MessAway/casas", (req, res) -> {
-            Casa casa = gson.fromJson(req.body(), Casa.class);
-            try (Connection conn = Database.connect()) {
-                PreparedStatement stmt = conn.prepareStatement("INSERT INTO CASA (nome) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
-                stmt.setString(1, casa.getNome());
-                stmt.executeUpdate();
-                ResultSet rs = stmt.getGeneratedKeys();
-                if (rs.next()) {
-                    casa.setId(rs.getLong(1));
+            res.type("application/json");
+            try {
+                System.out.println("Headers: " + req.headers());
+                System.out.println("Body recebido: " + req.body());
+                Casa casa = gson.fromJson(req.body(), Casa.class);
+                System.out.println("Casa objeto: " + gson.toJson(casa));
+                
+                try (Connection conn = Database.connect()) {
+                    // Ajustando para corresponder ao schema do banco de dados
+                    PreparedStatement stmt = conn.prepareStatement(
+                        "INSERT INTO CASA (nome, descricao, endereco, ativo, data_criacao) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)",
+                        Statement.RETURN_GENERATED_KEYS
+                    );
+                    stmt.setString(1, casa.getNome());
+                    stmt.setString(2, casa.getDescricao() != null ? casa.getDescricao() : "");
+                    stmt.setString(3, casa.getEndereco() != null ? casa.getEndereco() : "");
+                    stmt.setBoolean(4, true);
+                    
+                    System.out.println("Executando query: INSERT INTO CASA (nome, descricao, endereco, ativo) VALUES ('"
+                        + casa.getNome() + "', '"
+                        + (casa.getDescricao() != null ? casa.getDescricao() : "") + "', '"
+                        + (casa.getEndereco() != null ? casa.getEndereco() : "") + "', true)");
+                    
+                    int affectedRows = stmt.executeUpdate();
+                    if (affectedRows == 0) {
+                        throw new SQLException("Creating casa failed, no rows affected.");
+                    }
+                    
+                    ResultSet rs = stmt.getGeneratedKeys();
+                    if (rs.next()) {
+                        casa.setId(rs.getLong(1));
+                        System.out.println("Casa criada com sucesso. ID: " + casa.getId());
+                    } else {
+                        throw new SQLException("Creating casa failed, no ID obtained.");
+                    }
+                    
+                    res.status(201);
+                    return gson.toJson(casa);
+                } catch (SQLException e) {
+                    System.err.println("Erro ao criar casa no banco: " + e.getMessage());
+                    e.printStackTrace(); // Adiciona stack trace completo
+                    res.status(500);
+                    return gson.toJson(new ErrorResponse("Erro ao criar casa: " + e.getMessage()));
                 }
-                res.status(201);
-                return gson.toJson(casa);
+            } catch (Exception e) {
+                System.err.println("Erro ao processar requisição: " + e.getMessage());
+                e.printStackTrace(); // Adiciona stack trace completo
+                res.status(400);
+                return gson.toJson(new ErrorResponse("Erro ao processar requisição: " + e.getMessage()));
             }
         });
 
         get("/MessAway/casas", (req, res) -> {
             List<Casa> casas = new ArrayList<>();
             try (Connection conn = Database.connect()) {
-                ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM CASA");
+                ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM CASA WHERE ativo = true");
                 while (rs.next()) {
-                    casas.add(new Casa(rs.getLong("id"), rs.getString("nome")));
+                    Casa casa = new Casa(rs.getLong("id_casa"), rs.getString("nome"));
+                    casa.setDescricao(rs.getString("descricao"));
+                    casa.setEndereco(rs.getString("endereco"));
+                    casa.setAtivo(rs.getBoolean("ativo"));
+                    casas.add(casa);
                 }
             }
             return gson.toJson(casas);
