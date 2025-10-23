@@ -1,9 +1,7 @@
 // src/pages/Dashboard/components/CasasSection.jsx
 
-import { Box, Typography, Paper, LinearProgress, Button, Grid, Chip } from '@mui/material'
-import { Add as AddIcon, Home as HomeIcon, ArrowForward as ArrowForwardIcon } from '@mui/icons-material'
-import { useNavigate } from 'react-router-dom'
-import { useTheme } from '@mui/material/styles'
+import { Box, Typography, Paper, LinearProgress, Grid, Chip } from '@mui/material'
+import { Home as HomeIcon } from '@mui/icons-material'
 import { getHouseStatus, HOUSE_STATUS_CONFIG } from '../constants/dashboardConstants'
 
 /**
@@ -18,8 +16,6 @@ import { getHouseStatus, HOUSE_STATUS_CONFIG } from '../constants/dashboardConst
  * - Ao clicar em "Ver Detalhes", navega para a casa selecionada em /casas
  */
 function CasasSection({ casas = [] }) {
-  const theme = useTheme()
-  const navigate = useNavigate()
 
   // Se não tiver casas, mostra apenas o card de adicionar
   const casasData = casas.length > 0 ? casas : []
@@ -30,16 +26,7 @@ function CasasSection({ casas = [] }) {
     return Math.round((casa.tarefasConcluidas / casa.totalTarefas) * 100)
   }
 
-  // Handler para navegar para a casa selecionada na página Casas
-  const handleVerDetalhes = (casaId) => {
-    // Navega para /casas e guarda o ID da casa selecionada
-    navigate('/casas', { state: { casaSelecionadaId: casaId } })
-  }
-
-  // Handler para adicionar nova casa
-  const handleAdicionarCasa = () => {
-    navigate('/casas')
-  }
+  // Removido: navegação e criação de casa a partir do dashboard
 
   return (
     <Box sx={{ mb: 4 }}>
@@ -52,17 +39,7 @@ function CasasSection({ casas = [] }) {
           </Typography>
         </Box>
         
-        <Button
-          variant="outlined"
-          startIcon={<AddIcon />}
-          onClick={handleAdicionarCasa}
-          sx={{
-            textTransform: 'none',
-            fontWeight: 600
-          }}
-        >
-          Nova Casa
-        </Button>
+        {/* Removido: Botão "Nova Casa" */}
       </Box>
 
       {/* Grid de Cards de Casas */}
@@ -82,15 +59,8 @@ function CasasSection({ casas = [] }) {
                   background: 'rgba(255, 255, 255, 0.9)',
                   backdropFilter: 'blur(10px)',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-                  transition: 'all 0.3s ease',
-                  cursor: 'pointer',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)'
-                  }
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
                 }}
-                onClick={() => handleVerDetalhes(casa.id)}
               >
                 {/* Ícone e Nome da Casa */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
@@ -172,76 +142,12 @@ function CasasSection({ casas = [] }) {
                   </Typography>
                 </Box>
 
-                {/* Botão Ver Detalhes */}
-                <Button
-                  fullWidth
-                  endIcon={<ArrowForwardIcon />}
-                  sx={{
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    color: statusConfig.color,
-                    '&:hover': {
-                      bgcolor: `${statusConfig.color}10`
-                    }
-                  }}
-                >
-                  Ver Detalhes
-                </Button>
+                {/* Removido: Botão "Ver Detalhes" */}
               </Paper>
             </Grid>
           )
         })}
-
-        {/* Card "Adicionar Nova Casa" */}
-        <Grid item xs={12} sm={6} md={4}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 3,
-              borderRadius: 3,
-              height: '100%',
-              minHeight: 250,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: '2px dashed',
-              borderColor: 'grey.300',
-              background: 'transparent',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                borderColor: 'primary.main',
-                bgcolor: 'rgba(25, 118, 210, 0.05)'
-              }
-            }}
-            onClick={handleAdicionarCasa}
-          >
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 60,
-                height: 60,
-                borderRadius: '50%',
-                bgcolor: 'primary.light',
-                color: 'white',
-                mb: 2
-              }}
-            >
-              <AddIcon sx={{ fontSize: '2rem' }} />
-            </Box>
-            
-            <Typography variant="h6" color="text.secondary" fontWeight="bold">
-              Adicionar Casa
-            </Typography>
-            
-            <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mt: 1 }}>
-              Crie uma nova casa para organizar
-            </Typography>
-          </Paper>
-        </Grid>
+        {/* Removido: Card "Adicionar Nova Casa" */}
       </Grid>
     </Box>
   )

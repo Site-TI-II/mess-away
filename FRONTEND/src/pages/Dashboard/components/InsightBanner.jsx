@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react'
-import { Box, Typography, Button, IconButton, Paper, CircularProgress } from '@mui/material'
+import { Box, Typography, IconButton, Paper, CircularProgress } from '@mui/material'
 import { Close as CloseIcon, TrendingUp as TrendingUpIcon } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
 import { listInsights } from '../../../api/insights'
@@ -204,21 +204,7 @@ function InsightBanner({ insight: propInsight }) {
             {insight.message}
           </Typography>
 
-          {/* Botão Ver Detalhes (opcional) */}
-          <Button
-            size="small"
-            sx={{
-              mt: 2,
-              color: insight.color,
-              fontWeight: 600,
-              textTransform: 'none',
-              '&:hover': {
-                bgcolor: `${insight.color}10`
-              }
-            }}
-          >
-            Ver Detalhes →
-          </Button>
+          {/* Removido: Botão "Ver Detalhes" */}
         </Box>
 
         {/* Botão Fechar */}

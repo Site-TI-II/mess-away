@@ -63,22 +63,7 @@ export const QUICK_ACTIONS = [
     color: '#9c27b0',
     description: 'Adicionar ou editar casas'
   },
-  {
-    id: 'manage-people',
-    label: 'Responsáveis',
-    icon: '👥',
-    path: '/responsaveis',
-    color: '#ff6f00',
-    description: 'Gerenciar pessoas da casa'
-  },
-  {
-    id: 'reports',
-    label: 'Relatórios',
-    icon: '📊',
-    path: '/relatorios',
-    color: '#f57f17',
-    description: 'Ver estatísticas detalhadas'
-  }
+  // Removidos: Responsáveis e Relatórios do Dashboard
 ]
 
 // ============================================================================
