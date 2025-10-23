@@ -1,6 +1,6 @@
 // src/pages/Tarefas/components/StatisticsCard.jsx
 
-import { Box, Paper, Typography, Chip, Divider } from '@mui/material'
+import { Box, Paper, Typography, Chip, Divider, LinearProgress } from '@mui/material'
 import { TrendingUp as TrendingUpIcon } from '@mui/icons-material'
 import { coresPorResponsavel } from '../constants/taskConstants'
 
@@ -13,6 +13,16 @@ function getColorForName(name) {
 }
 
 function StatisticsCard({ lista }) {
+  const totalTarefas = Array.isArray(lista) ? lista.length : 0
+  const concluidas = Array.isArray(lista) ? lista.filter(t => t.concluida).length : 0
+  const percent = totalTarefas > 0 ? Math.round((concluidas / totalTarefas) * 100) : 0
+
+  // Diárias (frequencia === 1)
+  const diarias = Array.isArray(lista) ? lista.filter(t => Number(t.frequencia) === 1) : []
+  const diariasTotal = diarias.length
+  const diariasConcluidas = diarias.filter(t => t.concluida).length
+  const diariasPercent = diariasTotal > 0 ? Math.round((diariasConcluidas / diariasTotal) * 100) : 0
+
   const contarPorResponsavel = () => {
     const contagem = {}
     lista.forEach((item) => {
@@ -51,16 +61,55 @@ function StatisticsCard({ lista }) {
 
       <Divider sx={{ mb: 2 }} />
 
+      {/* Resumo geral de conclusão */}
+      {totalTarefas === 0 ? (
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ textAlign: 'center', py: 4 }}
+        >
+          Adicione tarefas para ver estatísticas
+        </Typography>
+      ) : (
+        <Box sx={{ mb: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              Tarefas concluídas
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {concluidas} de {totalTarefas} • {percent}%
+            </Typography>
+          </Box>
+          <LinearProgress
+            variant="determinate"
+            value={percent}
+            sx={{ height: 8, borderRadius: 1.5 }}
+          />
+        </Box>
+      )}
+
+      {/* Resumo de diárias */}
+      {diariasTotal > 0 && (
+        <Box sx={{ mb: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              Diárias concluídas
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {diariasConcluidas} de {diariasTotal} • {diariasPercent}%
+            </Typography>
+          </Box>
+          <LinearProgress
+            color="secondary"
+            variant="determinate"
+            value={diariasPercent}
+            sx={{ height: 8, borderRadius: 1.5 }}
+          />
+        </Box>
+      )}
+
       <Box sx={{ flex: 1, overflowY: 'auto' }}>
-        {lista.length === 0 ? (
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ textAlign: 'center', py: 4 }}
-          >
-            Adicione tarefas para ver estatísticas
-          </Typography>
-        ) : Object.entries(estatisticas).length === 0 ? (
+        {totalTarefas === 0 ? null : Object.entries(estatisticas).length === 0 ? (
           <Typography
             variant="body2"
             color="text.secondary"
