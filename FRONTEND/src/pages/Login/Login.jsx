@@ -71,11 +71,12 @@ function Login() {
     }
 
     try {
-      const user = await login(formData.email, formData.password)
+  const user = await login(formData.email, formData.password)
       // Normalize and store the actual usuario object in localStorage (backend returns { authenticated, usuario })
       const storedUser = user && user.usuario ? user.usuario : user
       if (user && user.idConta) storedUser.idConta = user.idConta
       if (user && user.casaId) storedUser.casaId = user.casaId
+  if (user && typeof user.isAdmin !== 'undefined') storedUser.isAdmin = user.isAdmin
       console.log('Login successful, user:', storedUser)
       localStorage.setItem('user', JSON.stringify(storedUser))
       // Se o login for bem-sucedido, redireciona para Casas

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { listarCasas } from '../../../api/casas'
 import {
   AppBar,
   Toolbar,
@@ -11,7 +12,8 @@ import {
   List,
   ListItem,
   ListItemText,
-  Container
+  Container,
+  Chip
 } from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu'
 import CloseIcon from '@mui/icons-material/Close'
@@ -27,6 +29,7 @@ function Navbar() {
       return null
     }
   })
+  const [hasCasas, setHasCasas] = useState(false)
   const theme = useTheme()
   const location = useLocation() // Para destacar rota ativa
   const navigate = useNavigate()
@@ -38,8 +41,10 @@ function Navbar() {
   const menuItems = [
     { text: 'Home', path: '/' },
     { text: 'Casas', path: '/casas' },
-    { text: 'Tarefas', path: '/tarefas' },
-    { text: 'Dashboard', path: '/dashboard' }
+    ...(hasCasas ? [
+      { text: 'Tarefas', path: '/tarefas' },
+      { text: 'Dashboard', path: '/dashboard' }
+    ] : [])
   ]
 
   const authItems = [
@@ -57,6 +62,25 @@ function Navbar() {
       setCurrentUser(null)
     }
   }, [location])
+
+  // Verifica se a conta tem casas; quando não tiver, esconde Tarefas/Dashboard
+  useEffect(() => {
+    let cancelled = false
+    const checkCasas = async () => {
+      try {
+        if (currentUser?.idConta) {
+          const resp = await listarCasas(currentUser.idConta)
+          if (!cancelled) setHasCasas(Array.isArray(resp.data) && resp.data.length > 0)
+        } else {
+          if (!cancelled) setHasCasas(false)
+        }
+      } catch {
+        if (!cancelled) setHasCasas(false)
+      }
+    }
+    checkCasas()
+    return () => { cancelled = true }
+  }, [currentUser])
 
   const getUserDisplayName = (user) => {
     if (!user) return ''
@@ -197,6 +221,9 @@ function Navbar() {
                   <Typography variant="body1" sx={{ fontWeight: 600 }}>
                     {getUserDisplayName(currentUser)}
                   </Typography>
+                  {currentUser?.isAdmin && (
+                    <Chip label="Admin" size="small" color="warning" sx={{ color: 'black' }} />
+                  )}
                   <Button
                     onClick={handleLogout}
                     variant="outlined"
@@ -345,6 +372,9 @@ function Navbar() {
               <Typography variant="h6" sx={{ fontWeight: 700 }}>
                 {getUserDisplayName(currentUser)}
               </Typography>
+              {currentUser?.isAdmin && (
+                <Chip label="Admin" size="small" color="warning" sx={{ color: 'black', mt: 1 }} />
+              )}
               <Button
                 fullWidth
                 onClick={handleLogout}

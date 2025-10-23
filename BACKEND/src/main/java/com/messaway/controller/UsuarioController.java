@@ -218,9 +218,10 @@ public class UsuarioController {
                 // Try to find an associated conta (if any)
                 Integer idConta = null;
                 Integer casaId = null;
+                Boolean isAdmin = null;
                 try (var conn = Database.getConnection();
                      var pst = conn.prepareStatement(
-                         "SELECT cu.id_conta, c.id_casa FROM CONTA_USUARIO cu " +
+                         "SELECT cu.id_conta, c.id_casa, c.is_admin FROM CONTA_USUARIO cu " +
                          "JOIN CONTA c ON cu.id_conta = c.id_conta " +
                          "WHERE cu.id_usuario = ? LIMIT 1")) {
                     pst.setLong(1, u.getId());
@@ -228,6 +229,7 @@ public class UsuarioController {
                         if (rs.next()) {
                             idConta = rs.getInt("id_conta");
                             casaId = rs.getObject("id_casa") != null ? rs.getInt("id_casa") : null;
+                            isAdmin = rs.getObject("is_admin") != null ? rs.getBoolean("is_admin") : null;
                         }
                     }
                 } catch (Exception ex) {
@@ -236,12 +238,13 @@ public class UsuarioController {
                 // Fallback: owner by email (account created during register without mapping)
                 if (idConta == null) {
                     try (var conn = Database.getConnection();
-                         var pst = conn.prepareStatement("SELECT id_conta, id_casa FROM CONTA WHERE email = ? LIMIT 1")) {
+                         var pst = conn.prepareStatement("SELECT id_conta, id_casa, is_admin FROM CONTA WHERE email = ? LIMIT 1")) {
                         pst.setString(1, u.getEmail());
                         try (var rs = pst.executeQuery()) {
                             if (rs.next()) {
                                 idConta = rs.getInt("id_conta");
                                 casaId = rs.getObject("id_casa") != null ? rs.getInt("id_casa") : null;
+                                isAdmin = rs.getObject("is_admin") != null ? rs.getBoolean("is_admin") : null;
                             }
                         }
                     } catch (Exception ex) {
@@ -255,6 +258,7 @@ public class UsuarioController {
                 result.put("usuario", u);
                 if (idConta != null) result.put("idConta", idConta);
                 if (casaId != null) result.put("casaId", casaId);
+                if (isAdmin != null) result.put("isAdmin", isAdmin);
                 return gson.toJson(result);
             } catch (SQLException e) {
                 res.status(500);
