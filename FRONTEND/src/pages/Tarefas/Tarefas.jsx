@@ -11,7 +11,7 @@ import StatisticsCard from './components/StatisticsCard'
 // API imports
 import { listarTarefas, criarTarefa, concluirTarefa, removerTarefa } from '../../api/tarefas'
 import { listarComodos, listarCategorias } from '../../api/comodos'
-import { listUsuariosByCasa, listarCasas } from '../../api/casas'
+import { listUsuariosByCasa, listarCasas, addUsuarioToCasa } from '../../api/casas'
 
 /**
  * Tarefas - Sistema de gerenciamento de tarefas domésticas
@@ -76,7 +76,7 @@ function Tarefas() {
       setCasaAtual(casa)
 
       // 3) Dados da casa em paralelo com tolerância a falhas
-      const results = await Promise.allSettled([
+      let results = await Promise.allSettled([
         listarTarefas(casa.id),
         listUsuariosByCasa(casa.id),
         listarComodos(casa.id),
@@ -91,8 +91,24 @@ function Tarefas() {
         setLista([])
       }
 
-      if (rPessoas.status === 'fulfilled') setPessoas(rPessoas.value)
-      else {
+      if (rPessoas.status === 'fulfilled') {
+        let pessoasVal = rPessoas.value || []
+        
+        // Se não houver pessoas na casa, tente associar o usuário atual automaticamente
+        if (pessoasVal.length === 0) {
+          const idUsuarioAtual = user.idUsuario || user.id || user.id_usuario
+          if (idUsuarioAtual) {
+            try {
+              await addUsuarioToCasa(casa.id, { idUsuario: idUsuarioAtual, permissao: 'Membro' })
+              // Recarrega pessoas
+              pessoasVal = await listUsuariosByCasa(casa.id)
+            } catch (e) {
+              console.warn('Não foi possível associar o usuário atual à casa:', e)
+            }
+          }
+        }
+        setPessoas(pessoasVal)
+      } else {
         console.warn('Falha ao carregar usuários da casa:', rPessoas.reason)
         setPessoas([])
       }

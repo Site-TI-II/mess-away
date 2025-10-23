@@ -32,3 +32,16 @@ export const listUsuariosByCasa = async (idCasa) => {
     throw error;
   }
 };
+
+export const addUsuarioToCasa = async (idCasa, { idUsuario, permissao = 'Membro' }) => {
+  try {
+    const response = await axiosInstance.post(`${API}/${idCasa}/usuarios`, {
+      idUsuario,
+      permissao
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao adicionar usuário à casa:', error);
+    throw error;
+  }
+};

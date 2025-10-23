@@ -34,3 +34,4 @@ build/
 .vscode/
 backend.pid
 backend.log
+server.log
