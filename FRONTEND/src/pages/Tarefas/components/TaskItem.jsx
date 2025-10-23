@@ -2,13 +2,24 @@
 
 import { Box, Typography, Chip, IconButton, ListItem } from '@mui/material'
 import { Check as CheckIcon, Delete as DeleteIcon } from '@mui/icons-material'
-import { coresPorResponsavel } from '../constants/taskConstants'
+
+// Cores padrão para responsáveis
+const coresPadrao = [
+  '#1976d2', '#d32f2f', '#388e3c', '#f57c00', 
+  '#7b1fa2', '#0097a7', '#c2185b', '#5d4037'
+]
+
+function getCorPorIndex(index) {
+  return coresPadrao[index % coresPadrao.length]
+}
 
 function TaskItem({ item, index, onComplete, onDelete, compact = false }) {
+  const cor = getCorPorIndex(index)
+  
   return (
     <ListItem
       sx={{
-        bgcolor: coresPorResponsavel[item.responsavel],
+        bgcolor: cor,
         color: 'white',
         mb: compact ? 1 : 1.5,
         borderRadius: 2,
@@ -38,17 +49,17 @@ function TaskItem({ item, index, onComplete, onDelete, compact = false }) {
             whiteSpace: compact ? 'nowrap' : 'normal'
           }}
         >
-          {item.tarefa}
+          {item.nome}
         </Typography>
 
         {compact ? (
           <Typography variant="caption" sx={{ opacity: 0.9 }}>
-            {item.responsavel}
+            {item.nomeResponsavel}
           </Typography>
         ) : (
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
             <Chip
-              label={item.responsavel}
+              label={item.nomeResponsavel}
               size="small"
               sx={{
                 bgcolor: 'rgba(255, 255, 255, 0.2)',
@@ -57,7 +68,7 @@ function TaskItem({ item, index, onComplete, onDelete, compact = false }) {
               }}
             />
             <Chip
-              label={item.prazo}
+              label={item.nomeComodo}
               size="small"
               sx={{
                 bgcolor: 'rgba(255, 255, 255, 0.2)',
@@ -65,6 +76,26 @@ function TaskItem({ item, index, onComplete, onDelete, compact = false }) {
                 fontWeight: 600
               }}
             />
+            <Chip
+              label={item.nomeCategoria}
+              size="small"
+              sx={{
+                bgcolor: 'rgba(255, 255, 255, 0.2)',
+                color: 'white',
+                fontWeight: 600
+              }}
+            />
+            {item.dataEstimada && (
+              <Chip
+                label={new Date(item.dataEstimada).toLocaleDateString('pt-BR')}
+                size="small"
+                sx={{
+                  bgcolor: 'rgba(255, 255, 255, 0.2)',
+                  color: 'white',
+                  fontWeight: 600
+                }}
+              />
+            )}
           </Box>
         )}
       </Box>
@@ -72,7 +103,7 @@ function TaskItem({ item, index, onComplete, onDelete, compact = false }) {
       <Box sx={{ display: 'flex', gap: compact ? 0 : 1 }}>
         <IconButton
           size={compact ? 'small' : 'medium'}
-          onClick={() => onComplete(index)}
+          onClick={() => onComplete(item.idTarefa)}
           disabled={item.concluida}
           sx={{
             color: 'white',
@@ -87,7 +118,7 @@ function TaskItem({ item, index, onComplete, onDelete, compact = false }) {
 
         {!compact && (
           <IconButton
-            onClick={() => onDelete(index)}
+            onClick={() => onDelete(item.idTarefa)}
             sx={{
               color: 'white',
               bgcolor: 'rgba(255, 255, 255, 0.2)',

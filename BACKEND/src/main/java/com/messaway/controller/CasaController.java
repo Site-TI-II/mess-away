@@ -9,7 +9,9 @@ import spark.Response;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static spark.Spark.*;
 
@@ -351,6 +353,51 @@ public class CasaController {
                 e.printStackTrace();
                 res.status(500);
                 return gson.toJson(new ErrorResponse("Erro ao deletar casa: " + e.getMessage()));
+            }
+        });
+
+        // GET: Listar usuários de uma casa
+        get("/api/casas/:id/usuarios", (req, res) -> {
+            res.type("application/json");
+            long idCasa = Long.parseLong(req.params(":id"));
+            List<Map<String, Object>> usuarios = new ArrayList<>();
+            
+            try (Connection conn = Database.connect()) {
+                String sql = """
+                    SELECT 
+                        uc.id_usuario_casa,
+                        u.id_usuario as idUsuario,
+                        u.nome,
+                        u.email,
+                        uc.permissao
+                    FROM USUARIO_CASA uc
+                    JOIN USUARIO u ON uc.id_usuario = u.id_usuario
+                    WHERE uc.id_casa = ? AND u.ativo = true
+                    ORDER BY u.nome
+                """;
+                
+                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                    stmt.setLong(1, idCasa);
+                    ResultSet rs = stmt.executeQuery();
+                    
+                    while (rs.next()) {
+                        Map<String, Object> usuario = new HashMap<>();
+                        usuario.put("idUsuario", rs.getLong("idUsuario"));
+                        usuario.put("nome", rs.getString("nome"));
+                        usuario.put("email", rs.getString("email"));
+                        usuario.put("permissao", rs.getString("permissao"));
+                        usuarios.add(usuario);
+                    }
+                }
+                
+                res.status(200);
+                return gson.toJson(usuarios);
+                
+            } catch (SQLException e) {
+                System.err.println("[CasaController] Erro ao listar usuários da casa: " + e.getMessage());
+                e.printStackTrace();
+                res.status(500);
+                return gson.toJson(new ErrorResponse("Erro ao listar usuários: " + e.getMessage()));
             }
         });
     }

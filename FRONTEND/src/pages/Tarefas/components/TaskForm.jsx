@@ -12,6 +12,7 @@ import {
   InputAdornment,
   Box
 } from '@mui/material'
+import { Checkbox, FormControlLabel } from '@mui/material'
 import {
   Assignment as AssignmentIcon,
   Person as PersonIcon,
@@ -19,9 +20,15 @@ import {
   Add as AddIcon
 } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
-import { listaDeResponsaveis, coresPorResponsavel, PRAZOS } from '../constants/taskConstants'
 
-function TaskForm({ tarefa, setTarefa, responsavel, setResponsavel, prazo, setPrazo, onAdd }) {
+function TaskForm({ 
+  tarefa, setTarefa, 
+  responsavel, setResponsavel, 
+  prazo, setPrazo,
+  diaria, setDiaria,
+  onAdd,
+  pessoas = []
+}) {
   const theme = useTheme()
 
   const handleKeyPress = (e) => {
@@ -69,8 +76,8 @@ function TaskForm({ tarefa, setTarefa, responsavel, setResponsavel, prazo, setPr
           />
         </Grid>
 
-        {/* Responsável */}
-        <Grid item xs={12} sm={6} md={5}>
+  {/* Responsável */}
+  <Grid item xs={12} sm={6} md={5}>
           <FormControl fullWidth>
             <InputLabel>Responsável</InputLabel>
             <Select
@@ -84,19 +91,9 @@ function TaskForm({ tarefa, setTarefa, responsavel, setResponsavel, prazo, setPr
               }
               sx={{ borderRadius: 2 }}
             >
-              {listaDeResponsaveis.map((nome) => (
-                <MenuItem key={nome} value={nome}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box
-                      sx={{
-                        width: 12,
-                        height: 12,
-                        borderRadius: '50%',
-                        bgcolor: coresPorResponsavel[nome]
-                      }}
-                    />
-                    {nome}
-                  </Box>
+              {pessoas.map((pessoa, index) => (
+                <MenuItem key={`${pessoa.idUsuario || pessoa.email || pessoa.nome || 'user'}-${index}`} value={pessoa.idUsuario}>
+                  {pessoa.nome}
                 </MenuItem>
               ))}
             </Select>
@@ -104,27 +101,35 @@ function TaskForm({ tarefa, setTarefa, responsavel, setResponsavel, prazo, setPr
         </Grid>
 
         {/* Prazo */}
-        <Grid item xs={12} sm={6} md={5}>
-          <FormControl fullWidth>
-            <InputLabel>Prazo</InputLabel>
-            <Select
-              value={prazo}
-              label="Prazo"
-              onChange={(e) => setPrazo(e.target.value)}
-              startAdornment={
+        <Grid item xs={12} sm={6} md={3}>
+          <TextField
+            label="Prazo"
+            type="date"
+            fullWidth
+            value={prazo}
+            onChange={(e) => setPrazo(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            InputProps={{
+              startAdornment: (
                 <InputAdornment position="start">
                   <CalendarIcon color="action" />
                 </InputAdornment>
+              )
+            }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2
               }
-              sx={{ borderRadius: 2 }}
-            >
-              {PRAZOS.map((p) => (
-                <MenuItem key={p.value} value={p.value}>
-                  {p.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+            }}
+          />
+        </Grid>
+
+        {/* Diária */}
+        <Grid item xs={12} sm={6} md={2}>
+          <FormControlLabel
+            control={<Checkbox checked={diaria} onChange={(e) => setDiaria(e.target.checked)} />}
+            label="Tarefa diária"
+          />
         </Grid>
 
         {/* Botão Adicionar */}
