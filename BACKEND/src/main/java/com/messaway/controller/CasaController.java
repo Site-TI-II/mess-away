@@ -101,7 +101,7 @@ public class CasaController {
         delete("/MessAway/casas/:id", (req, res) -> {
             long id = Long.parseLong(req.params(":id"));
             try (Connection conn = Database.connect()) {
-                PreparedStatement stmt = conn.prepareStatement("DELETE FROM CASA WHERE id = ?");
+                PreparedStatement stmt = conn.prepareStatement("DELETE FROM CASA WHERE id_casa = ?");
                 stmt.setLong(1, id);
                 stmt.executeUpdate();
                 res.status(204);
@@ -175,7 +175,7 @@ public class CasaController {
         delete("/api/casas/:id", (req, res) -> {
             long id = Long.parseLong(req.params(":id"));
             try (Connection conn = Database.connect()) {
-                PreparedStatement stmt = conn.prepareStatement("DELETE FROM CASA WHERE id = ?");
+                PreparedStatement stmt = conn.prepareStatement("DELETE FROM CASA WHERE id_casa = ?");
                 stmt.setLong(1, id);
                 stmt.executeUpdate();
                 res.status(204);

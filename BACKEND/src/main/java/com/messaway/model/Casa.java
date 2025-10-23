@@ -1,6 +1,9 @@
 package com.messaway.model;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Casa {
+    @SerializedName("id")
     private Long id_casa; // Ajustado para corresponder ao nome da coluna no banco
     private String nome;
     private String descricao;
