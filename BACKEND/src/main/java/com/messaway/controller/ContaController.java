@@ -79,6 +79,17 @@ public class ContaController {
             String cor = body.has("cor") ? body.get("cor").getAsString() : null;
             String permissao = body.has("permissao") ? body.get("permissao").getAsString() : null;
 
+            // Enforce max 7 profiles per conta
+            try (PreparedStatement chk = conn.prepareStatement("SELECT COUNT(*) FROM CONTA_USUARIO WHERE id_conta = ?")) {
+                chk.setInt(1, idConta);
+                try (ResultSet crs = chk.executeQuery()) {
+                    if (crs.next() && crs.getInt(1) >= 7) {
+                        res.status(400);
+                        return JsonUtil.toJson(java.util.Map.of("error", "limite_conta_usuarios", "message", "A conta atingiu o limite de 7 usuários"));
+                    }
+                }
+            }
+
 
             String sql = "INSERT INTO CONTA_USUARIO (id_conta, id_usuario, apelido, cor, permissao) VALUES (?, ?, ?, ?, ?) RETURNING *";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {

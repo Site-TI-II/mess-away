@@ -33,7 +33,7 @@ import PessoaItem from './PessoaItem'
  * - onDeletePessoa: function(pessoaId)
  * - onAddPessoaClick: function
  */
-function CasaDetails({ casa, onEditCasaNome, onEditPessoaNome, onDeletePessoa, onAddPessoaClick }) {
+function CasaDetails({ casa, onEditCasaNome, onEditPessoaNome, onDeletePessoa, onAddPessoaClick, extraActions }) {
     const theme = useTheme()
     const [isEditingCasa, setIsEditingCasa] = useState(false)
     const [editCasaText, setEditCasaText] = useState(casa.nome)
@@ -78,7 +78,7 @@ function CasaDetails({ casa, onEditCasaNome, onEditPessoaNome, onDeletePessoa, o
             }}
         >
             {/* Header com Avatar e Nome */}
-            <Box
+                <Box
                 sx={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -145,10 +145,17 @@ function CasaDetails({ casa, onEditCasaNome, onEditPessoaNome, onDeletePessoa, o
                     )}
                 </Box>
 
-                {/* Contador de Pessoas */}
+                                {/* Contador de Pessoas */}
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                     {casa.pessoas.length} pessoa{casa.pessoas.length !== 1 ? 's' : ''} cadastrada{casa.pessoas.length !== 1 ? 's' : ''}
                 </Typography>
+
+                                {/* Ações extras (ex.: adicionar morador à casa) */}
+                                {extraActions && (
+                                    <Box sx={{ mt: 1 }}>
+                                        {extraActions}
+                                    </Box>
+                                )}
             </Box>
 
             <Divider />
@@ -174,7 +181,7 @@ function CasaDetails({ casa, onEditCasaNome, onEditPessoaNome, onDeletePessoa, o
                                 background: 'linear-gradient(135deg, #9c27b0 0%, #ba68c8 100%)'
                             }}
                         >
-                            Adicionar Primeira Pessoa
+                            Adicionar Pessoa (Perfil)
                         </Button>
                     </Box>
                 ) : (
@@ -203,7 +210,7 @@ function CasaDetails({ casa, onEditCasaNome, onEditPessoaNome, onDeletePessoa, o
                             <Box sx={{ display: 'flex', alignItems: 'center', color: '#9c27b0' }}>
                                 <PersonAddIcon sx={{ mr: 1.5 }} />
                                 <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                                    Adicionar Pessoa
+                                    Adicionar Pessoa (Perfil)
                                 </Typography>
                             </Box>
                         </ListItemButton>

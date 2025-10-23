@@ -90,6 +90,20 @@ function Tarefas() {
 
       if (rPessoas.status === 'fulfilled') {
         let pessoasVal = rPessoas.value || []
+
+        // Dedupe por idUsuario para evitar duplicados ocasionais
+        if (Array.isArray(pessoasVal)) {
+          const seen = new Set()
+          pessoasVal = pessoasVal.filter(p => {
+            const id = p?.idUsuario
+            if (!id) return false
+            if (seen.has(id)) return false
+            seen.add(id)
+            return true
+          })
+          // Ordena por nome para consistência
+          pessoasVal.sort((a, b) => (a?.nome || '').localeCompare(b?.nome || ''))
+        }
         
         // Se não houver pessoas na casa, tente associar o usuário atual automaticamente
         if (pessoasVal.length === 0) {
@@ -99,6 +113,17 @@ function Tarefas() {
               await addUsuarioToCasa(casa.id, { idUsuario: idUsuarioAtual, permissao: 'Membro' })
               // Recarrega pessoas
               pessoasVal = await listUsuariosByCasa(casa.id)
+              if (Array.isArray(pessoasVal)) {
+                const seen2 = new Set()
+                pessoasVal = pessoasVal.filter(p => {
+                  const id = p?.idUsuario
+                  if (!id) return false
+                  if (seen2.has(id)) return false
+                  seen2.add(id)
+                  return true
+                })
+                pessoasVal.sort((a, b) => (a?.nome || '').localeCompare(b?.nome || ''))
+              }
             } catch (e) {
               console.warn('Não foi possível associar o usuário atual à casa:', e)
             }

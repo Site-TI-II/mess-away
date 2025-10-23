@@ -21,11 +21,12 @@ import EditIcon from '@mui/icons-material/Edit';
 import CloseIcon from '@mui/icons-material/Close';
 import { useLocation } from 'react-router-dom';
 
-import { listarCasas, criarCasa, deletarCasa } from '../../api/casas';
+import { listarCasas, criarCasa, deletarCasa, listUsuariosByCasa } from '../../api/casas';
 import { listUsuariosByConta, addUsuarioToConta, deleteUsuarioFromConta } from '../../api/contas';
 // Componentes do novo frontend (pós-merge)
 import AddCasaDialog from './components/AddCasaDialog';
 import AddPessoaDialog from './components/AddPessoaDialog';
+import AddMoradorCasaDialog from './components/AddMoradorCasaDialog';
 import CasaCard from './components/CasaCard';
 import CasaDetails from './components/CasaDetails';
 
@@ -35,6 +36,7 @@ function Casas() {
   const [casaSelecionadaId, setCasaSelecionadaId] = useState(null);
   const [addPessoaDialogOpen, setAddPessoaDialogOpen] = useState(false);
   const [addCasaDialogOpen, setAddCasaDialogOpen] = useState(false);
+  const [addMoradorDialogOpen, setAddMoradorDialogOpen] = useState(false);
   const [novoNomePessoa, setNovoNomePessoa] = useState('');
   const [novoNomeCasa, setNovoNomeCasa] = useState('');
   const [editingItemId, setEditingItemId] = useState(null);
@@ -44,36 +46,36 @@ function Casas() {
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user') || 'null');
-    listarCasas(user?.idConta).then(res => {
-      setCasas(res.data);
-      
+    listarCasas(user?.idConta).then(async res => {
+      const casasBase = (res.data || []).map(c => ({ ...c, pessoas: [] }));
+      // Para cada casa, carrega os usuários vinculados (USUARIO_CASA)
+      const carregadas = await Promise.all(
+        casasBase.map(async (c) => {
+          try {
+            const pessoas = await listUsuariosByCasa(c.id);
+            // normaliza e ordena
+            const norm = (pessoas || []).map(p => ({ id: p.idUsuario, nome: p.nome, papel: p.permissao || 'Membro' }))
+              .filter(p => !!p.id);
+            norm.sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
+            return { ...c, pessoas: norm };
+          } catch {
+            return c;
+          }
+        })
+      );
+      setCasas(carregadas);
+
       // Se vier do Dashboard com uma casa selecionada, use ela
       const casaIdFromDashboard = location.state?.casaSelecionadaId;
-      
-      if (casaIdFromDashboard && res.data.some(c => c.id === casaIdFromDashboard)) {
+      if (casaIdFromDashboard && carregadas.some(c => c.id === casaIdFromDashboard)) {
         setCasaSelecionadaId(casaIdFromDashboard);
-      } else if (res.data.length > 0) {
-        setCasaSelecionadaId(res.data[0].id);
+      } else if (carregadas.length > 0) {
+        setCasaSelecionadaId(carregadas[0].id);
       } else {
         setCasaSelecionadaId(null);
       }
     });
-    // load profiles for conta (if available)
-    if (user && user.idConta) {
-      listUsuariosByConta(user.idConta).then((res) => {
-        // res is array of ContaUsuario objects
-        if (res && res.length > 0) {
-          // Set profiles for the first casa to the server result (overwrite to avoid duplicates)
-          setCasas(prev => {
-            if (!prev || prev.length === 0) return prev;
-            const updated = [...prev];
-            const mapped = res.map(p => ({ id: p.id, nome: p.apelido || 'Morador', papel: p.permissao || 'Membro', cor: p.cor }));
-            updated[0] = { ...updated[0], pessoas: mapped };
-            return updated;
-          });
-        }
-      });
-    }
+    // Observação: removido o preenchimento por Conta (listUsuariosByConta) para refletir corretamente moradores da casa
   }, []);
 
   useEffect(() => {
@@ -285,6 +287,12 @@ function Casas() {
             onEditPessoaNome={handleEditarPessoaNome}
             onDeletePessoa={handleRemoverPessoa}
             onAddPessoaClick={() => setAddPessoaDialogOpen(true)}
+            // botão extra para cadastrar morador (usuário real) e associar à casa
+            extraActions={
+              <Button variant="outlined" onClick={() => setAddMoradorDialogOpen(true)} sx={{ ml: 1 }}>
+                Adicionar morador à casa
+              </Button>
+            }
           />
         )}
       </Box>
@@ -295,6 +303,27 @@ function Casas() {
         onClose={() => setAddPessoaDialogOpen(false)}
         onAdd={(nomePessoa) => handleAdicionarPessoa(nomePessoa)}
         casaNome={casaAtual?.nome}
+      />
+
+      {/* Diálogo para adicionar morador (USUARIO + associação na casa) */}
+      <AddMoradorCasaDialog
+        open={addMoradorDialogOpen}
+        onClose={() => setAddMoradorDialogOpen(false)}
+        onAdd={async ({ nome, email, senha, permissao }) => {
+          try {
+            const { addMoradorToCasa } = await import('../../api/casas')
+            await addMoradorToCasa(casaAtual.id, { nome, email, senha, permissao })
+            // Recarrega moradores desta casa
+            const pessoas = await listUsuariosByCasa(casaAtual.id)
+            const norm = (pessoas || []).map(p => ({ id: p.idUsuario, nome: p.nome, papel: p.permissao || 'Membro' }))
+              .filter(p => !!p.id)
+              .sort((a, b) => (a.nome || '').localeCompare(b.nome || ''))
+            setCasas(prev => prev.map(c => c.id === casaAtual.id ? { ...c, pessoas: norm } : c))
+          } catch (e) {
+            const msg = e?.response?.data?.message || e?.response?.data?.error || 'Erro ao criar morador'
+            alert(msg)
+          }
+        }}
       />
 
       {/* Diálogo para adicionar casa (componente do novo frontend) */}

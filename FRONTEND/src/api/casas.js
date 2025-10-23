@@ -45,3 +45,20 @@ export const addUsuarioToCasa = async (idCasa, { idUsuario, permissao = 'Membro'
     throw error;
   }
 };
+
+export const addMoradorToCasa = async (idCasa, { nome, email, senha, permissao = 'Membro' }) => {
+  try {
+    const response = await axiosInstance.post(`${API}/${idCasa}/usuarios/create`, {
+      nome,
+      email,
+      senha,
+      permissao
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao criar morador da casa:', error?.response?.data || error?.message);
+    throw error;
+  }
+};
+
+// Removido: associação por e-mail ao pedido do cliente

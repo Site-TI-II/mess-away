@@ -356,7 +356,7 @@ public class CasaController {
             }
         });
 
-        // GET: Listar usuários de uma casa
+        // GET: Listar usuários de uma casa (dedup por usuário)
         get("/api/casas/:id/usuarios", (req, res) -> {
             res.type("application/json");
             long idCasa = Long.parseLong(req.params(":id"));
@@ -365,14 +365,14 @@ public class CasaController {
             try (Connection conn = Database.connect()) {
                 String sql = """
                     SELECT 
-                        uc.id_usuario_casa,
                         u.id_usuario as idUsuario,
                         u.nome,
                         u.email,
-                        uc.permissao
+                        MAX(uc.permissao) as permissao
                     FROM USUARIO_CASA uc
                     JOIN USUARIO u ON uc.id_usuario = u.id_usuario
-                    WHERE uc.id_casa = ? AND u.ativo = true
+                    WHERE uc.id_casa = ?
+                    GROUP BY u.id_usuario, u.nome, u.email
                     ORDER BY u.nome
                 """;
                 
