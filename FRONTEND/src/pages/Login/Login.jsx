@@ -72,8 +72,12 @@ function Login() {
 
     try {
       const user = await login(formData.email, formData.password)
-      // Se o login for bem-sucedido, redireciona para o dashboard
-      navigate('/dashboard')
+      // Normalize and store the actual usuario object in localStorage (backend returns { authenticated, usuario })
+      const storedUser = user && user.usuario ? user.usuario : user
+      if (user && user.idConta) storedUser.idConta = user.idConta
+      localStorage.setItem('user', JSON.stringify(storedUser))
+      // Se o login for bem-sucedido, redireciona para Casas
+      navigate('/casas')
     } catch (err) {
       // Trata erros específicos
       if (err.response?.status === 401) {

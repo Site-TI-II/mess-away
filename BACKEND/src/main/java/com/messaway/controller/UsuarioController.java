@@ -206,8 +206,24 @@ public class UsuarioController {
                 }
                 // set cookie (simple session)
                 res.cookie("userId", String.valueOf(u.getId()));
+                // Try to find an associated conta (if any)
+                Integer idConta = null;
+                try (var conn = Database.getConnection();
+                     var pst = conn.prepareStatement("SELECT id_conta FROM CONTA_USUARIO WHERE id_usuario = ? LIMIT 1")) {
+                    pst.setLong(1, u.getId());
+                    try (var rs = pst.executeQuery()) {
+                        if (rs.next()) idConta = rs.getInt("id_conta");
+                    }
+                } catch (Exception ex) {
+                    // ignore lookup errors, login still succeeds
+                }
+
                 res.status(200);
-                return gson.toJson(java.util.Map.of("authenticated", true, "usuario", u));
+                if (idConta != null) {
+                    return gson.toJson(java.util.Map.of("authenticated", true, "usuario", u, "idConta", idConta));
+                } else {
+                    return gson.toJson(java.util.Map.of("authenticated", true, "usuario", u));
+                }
             } catch (SQLException e) {
                 res.status(500);
                 return gson.toJson(new Error("DB error: " + e.getMessage()));
