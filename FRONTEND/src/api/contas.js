@@ -15,3 +15,8 @@ export const listUsuariosByConta = async (idConta) => {
   const res = await axios.get(`${API_URL}/contas/${idConta}/usuarios`);
   return res.data;
 };
+
+export const deleteUsuarioFromConta = async (idConta, contaUsuarioId) => {
+  const res = await axios.delete(`${API_URL}/contas/${idConta}/usuarios/${contaUsuarioId}`);
+  return res.status;
+};

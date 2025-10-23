@@ -20,12 +20,14 @@ public class ContaController {
         post("/MessAway/contas", (req, res) -> createConta(req, res));
         post("/MessAway/contas/:id/usuarios", (req, res) -> addUsuarioToConta(req, res));
         get("/MessAway/contas/:id/usuarios", (req, res) -> listUsuariosByConta(req, res));
-    post("/MessAway/contas/:id/admin", (req, res) -> toggleAdmin(req, res));
+        post("/MessAway/contas/:id/admin", (req, res) -> toggleAdmin(req, res));
+        delete("/MessAway/contas/:id/usuarios/:contaUsuarioId", (req, res) -> deleteUsuarioFromConta(req, res));
 
         post("/api/contas", (req, res) -> createConta(req, res));
         post("/api/contas/:id/usuarios", (req, res) -> addUsuarioToConta(req, res));
         get("/api/contas/:id/usuarios", (req, res) -> listUsuariosByConta(req, res));
-    post("/api/contas/:id/admin", (req, res) -> toggleAdmin(req, res));
+        post("/api/contas/:id/admin", (req, res) -> toggleAdmin(req, res));
+        delete("/api/contas/:id/usuarios/:contaUsuarioId", (req, res) -> deleteUsuarioFromConta(req, res));
     }
 
     public static String createConta(Request req, Response res) {
@@ -167,5 +169,29 @@ public class ContaController {
         }
         res.status(404);
         return JsonUtil.toJson("Conta não encontrada");
+    }
+
+    public static String deleteUsuarioFromConta(Request req, Response res) {
+        int idConta = Integer.parseInt(req.params(":id"));
+        int contaUsuarioId = Integer.parseInt(req.params(":contaUsuarioId"));
+        try (Connection conn = Database.getConnection()) {
+            String sql = "DELETE FROM CONTA_USUARIO WHERE id_conta_usuario = ? AND id_conta = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, contaUsuarioId);
+                stmt.setInt(2, idConta);
+                int affected = stmt.executeUpdate();
+                if (affected > 0) {
+                    res.status(204);
+                    return "";
+                } else {
+                    res.status(404);
+                    return JsonUtil.toJson("Associação usuário-conta não encontrada");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            res.status(500);
+            return JsonUtil.toJson("Erro ao remover usuário da conta");
+        }
     }
 }

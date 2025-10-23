@@ -21,7 +21,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import CloseIcon from '@mui/icons-material/Close';
 
 import { listarCasas, criarCasa, deletarCasa } from '../../api/casas';
-import { listUsuariosByConta, addUsuarioToConta } from '../../api/contas';
+import { listUsuariosByConta, addUsuarioToConta, deleteUsuarioFromConta } from '../../api/contas';
 // Componentes do novo frontend (pós-merge)
 import AddCasaDialog from './components/AddCasaDialog';
 import AddPessoaDialog from './components/AddPessoaDialog';
@@ -153,14 +153,28 @@ function Casas() {
   };
 
   const handleRemoverPessoa = (pessoaId) => {
-    const novasCasas = casas.map(casa => {
-      if (casa.id === casaSelecionadaId) {
-        const novasPessoas = (casa.pessoas || []).filter(p => p.id !== pessoaId);
-        return { ...casa, pessoas: novasPessoas };
-      }
-      return casa;
-    });
-    setCasas(novasCasas);
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    if (!user || !user.idConta) {
+      alert('Conta não encontrada. Faça login novamente.');
+      return;
+    }
+
+    // Remove no backend (CONTA_USUARIO) e depois atualiza estado local
+    deleteUsuarioFromConta(user.idConta, pessoaId)
+      .then(() => {
+        const novasCasas = casas.map(casa => {
+          if (casa.id === casaSelecionadaId) {
+            const novasPessoas = (casa.pessoas || []).filter(p => p.id !== pessoaId);
+            return { ...casa, pessoas: novasPessoas };
+          }
+          return casa;
+        });
+        setCasas(novasCasas);
+      })
+      .catch((err) => {
+        console.error('Erro ao remover pessoa da conta:', err);
+        alert(err.response?.data || 'Erro ao remover pessoa.');
+      });
   };
 
   // Editar nome da casa (somente client-side por enquanto)
