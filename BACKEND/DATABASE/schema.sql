@@ -165,3 +165,24 @@ CREATE TABLE INSIGHT (
     active BOOLEAN DEFAULT TRUE,
     data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- 10. GASTO (Expenses)
+CREATE TABLE GASTO (
+    id_gasto SERIAL PRIMARY KEY,
+    id_casa INT NOT NULL,
+    nome VARCHAR(100) NOT NULL,
+    valor DECIMAL(10,2) NOT NULL,
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_casa) REFERENCES CASA(id_casa)
+);
+
+-- 11. META_GASTO (Expense Goals)
+CREATE TABLE META_GASTO (
+    id_meta_gasto SERIAL PRIMARY KEY,
+    id_casa INT NOT NULL,
+    valor DECIMAL(10,2) NOT NULL,
+    data_inicio DATE NOT NULL,
+    data_fim DATE NOT NULL,
+    ativo BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (id_casa) REFERENCES CASA(id_casa)
+);

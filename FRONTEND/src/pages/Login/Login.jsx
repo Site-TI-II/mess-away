@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { login } from '../../api/auth'
 import {
   Box,
   Container,
@@ -60,7 +61,7 @@ function Login() {
     setError('') // Limpa erro ao digitar
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     
     // Validação básica
@@ -69,11 +70,18 @@ function Login() {
       return
     }
 
-    // Aqui você faria a chamada à API
-    console.log('Login:', formData)
-    
-    // Simulando sucesso
-    navigate('/dashboard')
+    try {
+      const user = await login(formData.email, formData.password)
+      // Se o login for bem-sucedido, redireciona para o dashboard
+      navigate('/dashboard')
+    } catch (err) {
+      // Trata erros específicos
+      if (err.response?.status === 401) {
+        setError('Email ou senha inválidos')
+      } else {
+        setError('Erro ao fazer login. Por favor, tente novamente.')
+      }
+    }
   }
 
   return (

@@ -5,6 +5,7 @@ import com.messaway.controller.UsuarioCasaController;
 import com.messaway.controller.UsuarioController;
 import com.messaway.controller.AchievementController;
 import com.messaway.controller.InsightController;
+import com.messaway.controller.GastoController;
 
 import static spark.Spark.*;
 
@@ -30,6 +31,13 @@ public class Main {
         UsuarioController.registerRoutes();
         AchievementController.registerRoutes();
         InsightController.registerRoutes();
+
+        // Rotas de Gastos
+        get("/api/casa/:idCasa/gastos", GastoController::getAllGastosByCasa);
+        post("/api/gastos", GastoController::createGasto);
+        delete("/api/gastos/:idGasto", GastoController::deleteGasto);
+        post("/api/casa/meta-gasto", GastoController::setMetaGasto);
+        get("/api/casa/:idCasa/meta-gasto", GastoController::getMetaGasto);
 
         // Mensagem de inicialização
         System.out.println("🚀 Servidor Spark iniciado na porta 4567");
