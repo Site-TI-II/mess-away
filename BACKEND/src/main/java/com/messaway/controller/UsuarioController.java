@@ -72,7 +72,7 @@ public class UsuarioController {
         });
 
         // login simples: verifica email+password, seta cookie userId
-        post("/MessAway/login", (req, res) -> {
+        post("/api/auth/login", (req, res) -> {
             try {
                 java.util.Map body = gson.fromJson(req.body(), java.util.Map.class);
                 String email = (String) body.get("email");
