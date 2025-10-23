@@ -89,8 +89,8 @@ function TaskForm({
               }
               sx={{ borderRadius: 2 }}
             >
-              {pessoas.map((pessoa) => (
-                <MenuItem key={pessoa.idUsuario} value={pessoa.idUsuario}>
+              {pessoas.map((pessoa, index) => (
+                <MenuItem key={`${pessoa.idUsuario || pessoa.email || pessoa.nome || 'user'}-${index}`} value={pessoa.idUsuario}>
                   {pessoa.nome}
                 </MenuItem>
               ))}

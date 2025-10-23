@@ -10,7 +10,6 @@ import StatisticsCard from './components/StatisticsCard'
 
 // API imports
 import { listarTarefas, criarTarefa, concluirTarefa, removerTarefa } from '../../api/tarefas'
-import { listarComodos, listarCategorias } from '../../api/comodos'
 import { listUsuariosByCasa, listarCasas, addUsuarioToCasa } from '../../api/casas'
 
 /**
@@ -36,8 +35,7 @@ function Tarefas() {
   // Dados da API
   const [lista, setLista] = useState([])
   const [pessoas, setPessoas] = useState([])
-  const [comodos, setComodos] = useState([])
-  const [categorias, setCategorias] = useState([])
+  // Não dependemos mais de comodos/categorias
   const [casaAtual, setCasaAtual] = useState(null)
   
   // Estado de carregamento e erros
@@ -78,12 +76,10 @@ function Tarefas() {
       // 3) Dados da casa em paralelo com tolerância a falhas
       let results = await Promise.allSettled([
         listarTarefas(casa.id),
-        listUsuariosByCasa(casa.id),
-        listarComodos(casa.id),
-        listarCategorias()
+        listUsuariosByCasa(casa.id)
       ])
 
-      const [rTarefas, rPessoas, rComodos, rCategorias] = results
+  const [rTarefas, rPessoas] = results
 
       if (rTarefas.status === 'fulfilled') setLista(rTarefas.value)
       else {
@@ -113,25 +109,8 @@ function Tarefas() {
         setPessoas([])
       }
 
-      if (rComodos.status === 'fulfilled') setComodos(rComodos.value)
-      else {
-        console.warn('Falha ao carregar cômodos:', rComodos.reason)
-        setComodos([])
-      }
-
-      if (rCategorias.status === 'fulfilled') setCategorias(rCategorias.value)
-      else {
-        console.warn('Falha ao carregar categorias:', rCategorias.reason)
-        setCategorias([])
-      }
-
       // Se tudo falhar, mostre erro geral
-      if (
-        rTarefas.status === 'rejected' &&
-        rPessoas.status === 'rejected' &&
-        rComodos.status === 'rejected' &&
-        rCategorias.status === 'rejected'
-      ) {
+      if (rTarefas.status === 'rejected' && rPessoas.status === 'rejected') {
         setError('Erro ao carregar dados. Verifique se o servidor backend está em execução.')
       }
     } catch (err) {
@@ -145,21 +124,12 @@ function Tarefas() {
   const adicionarTarefa = async () => {
     if (!tarefa.trim() || !responsavel || !prazo) return
 
-    // Seleciona defaults: primeiro cômodo e primeira categoria carregados
-    const defaultComodoId = comodos?.[0]?.idComodo
-    const defaultCategoriaId = categorias?.[0]?.idCategoria
-    if (!defaultComodoId || !defaultCategoriaId) {
-      setError('Configure ao menos um cômodo e uma categoria para a casa antes de criar tarefas.')
-      return
-    }
-
     try {
       const novaTarefa = {
         nome: tarefa,
         descricao: '',
-        idComodo: defaultComodoId,
         idUsuario: responsavel,
-        idCategoria: defaultCategoriaId,
+        idCasa: casaAtual?.id,
         dataEstimada: prazo, // formato ISO string
         frequencia: 1
       }

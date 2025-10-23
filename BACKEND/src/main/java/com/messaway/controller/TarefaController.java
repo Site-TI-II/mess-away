@@ -105,13 +105,61 @@ public class TarefaController {
             
             String nome = json.get("nome").getAsString();
             String descricao = json.has("descricao") ? json.get("descricao").getAsString() : "";
-            long idComodo = json.get("idComodo").getAsLong();
+            Long idComodo = json.has("idComodo") && !json.get("idComodo").isJsonNull() ? json.get("idComodo").getAsLong() : null;
             long idUsuario = json.get("idUsuario").getAsLong();
-            long idCategoria = json.get("idCategoria").getAsLong();
+            Long idCategoria = json.has("idCategoria") && !json.get("idCategoria").isJsonNull() ? json.get("idCategoria").getAsLong() : null;
+            Long idCasa = json.has("idCasa") && !json.get("idCasa").isJsonNull() ? json.get("idCasa").getAsLong() : null;
             String dataEstimada = json.has("dataEstimada") ? json.get("dataEstimada").getAsString() : null;
             int frequencia = json.has("frequencia") ? json.get("frequencia").getAsInt() : 1;
             
             try (Connection conn = Database.connect()) {
+                // Resolver defaults se comodo/categoria não forem informados
+                if (idComodo == null) {
+                    if (idCasa == null) {
+                        res.status(400);
+                        return gson.toJson(new ErrorResponse("idCasa é obrigatório quando idComodo não é informado"));
+                    }
+                    // tentar encontrar um cômodo 'Geral' na casa; se não existir, criar
+                    try (PreparedStatement ps = conn.prepareStatement(
+                            "SELECT id_comodo FROM COMODO WHERE id_casa = ? AND LOWER(nome) = 'geral' LIMIT 1")) {
+                        ps.setLong(1, idCasa);
+                        try (ResultSet rs = ps.executeQuery()) {
+                            if (rs.next()) {
+                                idComodo = rs.getLong(1);
+                            }
+                        }
+                    }
+                    if (idComodo == null) {
+                        try (PreparedStatement ps = conn.prepareStatement(
+                                "INSERT INTO COMODO (id_casa, nome, descricao, ativo) VALUES (?, 'Geral', 'Padrão', true) RETURNING id_comodo")) {
+                            ps.setLong(1, idCasa);
+                            try (ResultSet rs = ps.executeQuery()) {
+                                if (rs.next()) idComodo = rs.getLong(1);
+                            }
+                        }
+                    }
+                }
+
+                if (idCategoria == null) {
+                    // tentar encontrar uma categoria 'Geral'; se não existir, criar
+                    try (PreparedStatement ps = conn.prepareStatement(
+                            "SELECT id_categoria FROM CATEGORIA WHERE LOWER(nome) = 'geral' LIMIT 1")) {
+                        try (ResultSet rs = ps.executeQuery()) {
+                            if (rs.next()) {
+                                idCategoria = rs.getLong(1);
+                            }
+                        }
+                    }
+                    if (idCategoria == null) {
+                        try (PreparedStatement ps = conn.prepareStatement(
+                                "INSERT INTO CATEGORIA (nome, descricao) VALUES ('Geral', 'Padrão') RETURNING id_categoria")) {
+                            try (ResultSet rs = ps.executeQuery()) {
+                                if (rs.next()) idCategoria = rs.getLong(1);
+                            }
+                        }
+                    }
+                }
+
                 String sql = """
                     INSERT INTO TAREFA 
                     (nome, descricao, id_comodo, id_usuario_responsavel, id_categoria, data_estimada, frequencia, ativo)
