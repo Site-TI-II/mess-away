@@ -31,6 +31,7 @@ public class Main {
         UsuarioController.registerRoutes();
         AchievementController.registerRoutes();
         InsightController.registerRoutes();
+    com.messaway.controller.ContaController.registerRoutes();
 
         // Rotas de Gastos
         get("/api/casa/:idCasa/gastos", GastoController::getAllGastosByCasa);

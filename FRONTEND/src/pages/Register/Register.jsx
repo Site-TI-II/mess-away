@@ -78,14 +78,18 @@ function Register() {
       return
     }
 
-    // Map frontend fields to backend model fields
+    // Build payload to create user and a conta (account)
     const payload = {
       nome: formData.name,
       email: formData.email,
-      password: formData.password
+      password: formData.password,
+      conta: {
+        create: true,
+        nome: `${formData.name}'s casa`
+      }
     }
 
-    fetch('http://localhost:4567/MessAway/usuarios', {
+    fetch('http://localhost:4567/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -98,8 +102,13 @@ function Register() {
         return res.json()
       })
       .then((data) => {
-        // registro criado com sucesso -> redireciona para home
-        navigate('/')
+        // Save user and account in localStorage so other pages can use it
+        if (data.usuario) {
+          // backend returns { usuario, idConta }
+          localStorage.setItem('user', JSON.stringify({ ...data.usuario, idConta: data.idConta || null }))
+        }
+        // Redirect to Casas tab/page
+        navigate('/casas')
       })
       .catch((err) => {
         setError(err.message || 'Erro ao conectar ao servidor')

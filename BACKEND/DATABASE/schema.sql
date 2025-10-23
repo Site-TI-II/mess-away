@@ -186,3 +186,44 @@ CREATE TABLE META_GASTO (
     ativo BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (id_casa) REFERENCES CASA(id_casa)
 );
+-- 12. CONTA (Account) and CONTA_USUARIO (Account -> Usuario mapping)
+--
+-- The previous "copilot" layout used many repeated columns (mor1..mor7, cor1..cor7).
+-- Normalize into a single `CONTA` table and a join table `CONTA_USUARIO` that
+-- links one account to many usuarios and stores per-user metadata such as color.
+
+-- If an old `public.conta` table exists, drop it first (commented for safety).
+-- DROP TABLE IF EXISTS public.conta;
+
+CREATE TABLE CONTA (
+    id_conta SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    senha VARCHAR(200) NOT NULL,
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    id_casa INT NULL,
+    ativo BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (id_casa) REFERENCES CASA(id_casa)
+);
+
+-- Mapping table: one account can have many users (moradores).
+-- Stores per-user display name (apelido), color and role/permissao.
+CREATE TABLE CONTA_USUARIO (
+    id_conta_usuario SERIAL PRIMARY KEY,
+    id_conta INT NOT NULL REFERENCES CONTA(id_conta) ON DELETE CASCADE,
+    id_usuario INT NOT NULL REFERENCES USUARIO(id_usuario) ON DELETE CASCADE,
+    apelido VARCHAR(100),
+    cor VARCHAR(50),
+    permissao VARCHAR(50),
+    data_associacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (id_conta, id_usuario)
+);
+
+-- Optional: if you need to migrate existing data from an old `public.conta` table,
+-- you can use SQL similar to the snippet below (adjust types and column names):
+-- BEGIN;
+-- INSERT INTO CONTA (nome, email, senha, data_cadastro, id_casa)
+-- SELECT nome, email, senha, datacadastro::timestamp, NULL::int
+-- FROM public.conta;
+-- -- Then insert associated usuarios into CONTA_USUARIO mapping using mor1..mor7
+-- COMMIT;

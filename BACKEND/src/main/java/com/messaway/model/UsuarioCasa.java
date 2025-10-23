@@ -1,49 +1,64 @@
 package com.messaway.model;
 
 public class UsuarioCasa {
-    private long id;
-    private String nome;
-    private String papel;
-    private long casaId;
+    // id_usuario_casa (primary key)
+    private Long id;
+    // id_usuario referencing USUARIO.id_usuario
+    private Long idUsuario;
+    // id_casa referencing CASA.id_casa
+    private Long idCasa;
+    // permissao/role
+    private String permissao;
+    // optional display name (apelido)
+    private String apelido;
 
     public UsuarioCasa() {}
 
-    public UsuarioCasa(long id, String nome, String papel, long casaId) {
+    public UsuarioCasa(Long id, Long idUsuario, Long idCasa, String permissao, String apelido) {
         this.id = id;
-        this.nome = nome;
-        this.papel = papel;
-        this.casaId = casaId;
+        this.idUsuario = idUsuario;
+        this.idCasa = idCasa;
+        this.permissao = permissao;
+        this.apelido = apelido;
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public String getNome() {
-        return nome;
+    public Long getIdUsuario() {
+        return idUsuario;
     }
 
-    public void setNome(String nome) {
-        this.nome = nome;
+    public void setIdUsuario(Long idUsuario) {
+        this.idUsuario = idUsuario;
     }
 
-    public String getPapel() {
-        return papel;
+    public Long getIdCasa() {
+        return idCasa;
     }
 
-    public void setPapel(String papel) {
-        this.papel = papel;
+    public void setIdCasa(Long idCasa) {
+        this.idCasa = idCasa;
     }
 
-    public long getCasaId() {
-        return casaId;
+    public String getPermissao() {
+        return permissao;
     }
 
-    public void setCasaId(long casaId) {
-        this.casaId = casaId;
+    public void setPermissao(String permissao) {
+        this.permissao = permissao;
+    }
+
+    public String getApelido() {
+        return apelido;
+    }
+
+    public void setApelido(String apelido) {
+        this.apelido = apelido;
     }
 }
