@@ -93,6 +93,10 @@ function Casas() {
         setCasas(res.data);
         setNovoNomeCasa('');
         setAddCasaDialogOpen(false);
+        // Recarrega a página imediatamente para refletir no header (Tarefas/Dashboard)
+        setTimeout(() => {
+          window.location.reload();
+        }, 50);
       })
       .catch(error => {
         console.error('Erro ao criar casa:', error);
@@ -103,9 +107,16 @@ function Casas() {
   const handleDeletarCasa = (casaId) => {
     if (window.confirm("Tem certeza que deseja deletar esta casa?")) {
       const user = JSON.parse(localStorage.getItem('user') || 'null');
-      deletarCasa(casaId).then(() => {
-        listarCasas(user?.idConta).then(res => setCasas(res.data));
-      });
+      deletarCasa(casaId)
+        .then(() => {
+          // Recarrega a página para atualizar o header e a listagem
+          window.location.reload();
+        })
+        .catch((err) => {
+          console.error('Erro ao deletar casa:', err);
+          // Fallback: tentar atualizar a lista sem reload
+          listarCasas(user?.idConta).then(res => setCasas(res.data));
+        });
     }
   };
 

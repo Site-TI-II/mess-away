@@ -252,6 +252,38 @@ public class UsuarioController {
                     }
                 }
 
+                // Fallback #2: derivar conta pela associação do usuário a uma casa (USUARIO_CASA -> CASA.id_conta)
+                if (idConta == null) {
+                    try (var conn = Database.getConnection();
+                         var pst = conn.prepareStatement(
+                             "SELECT cs.id_conta FROM USUARIO_CASA uc " +
+                             "JOIN CASA cs ON uc.id_casa = cs.id_casa " +
+                             "WHERE uc.id_usuario = ? AND cs.id_conta IS NOT NULL LIMIT 1")) {
+                        pst.setLong(1, u.getId());
+                        try (var rs = pst.executeQuery()) {
+                            if (rs.next()) {
+                                idConta = rs.getInt("id_conta");
+                            }
+                        }
+                    } catch (Exception ex) {
+                        // ignore
+                    }
+                    // Se achou idConta, buscar is_admin
+                    if (idConta != null) {
+                        try (var conn = Database.getConnection();
+                             var pst = conn.prepareStatement("SELECT is_admin FROM CONTA WHERE id_conta = ?")) {
+                            pst.setInt(1, idConta);
+                            try (var rs = pst.executeQuery()) {
+                                if (rs.next()) {
+                                    isAdmin = rs.getObject(1) != null ? rs.getBoolean(1) : null;
+                                }
+                            }
+                        } catch (Exception ex) {
+                            // ignore
+                        }
+                    }
+                }
+
                 res.status(200);
                 java.util.Map<String, Object> result = new java.util.HashMap<>();
                 result.put("authenticated", true);

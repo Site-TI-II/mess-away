@@ -40,8 +40,8 @@ function Navbar() {
 
   const menuItems = [
     { text: 'Home', path: '/' },
-    { text: 'Casas', path: '/casas' },
-    ...(hasCasas ? [
+    ...(currentUser ? [{ text: 'Casas', path: '/casas' }] : []),
+    ...(currentUser && hasCasas ? [
       { text: 'Tarefas', path: '/tarefas' },
       { text: 'Dashboard', path: '/dashboard' }
     ] : [])
@@ -68,13 +68,22 @@ function Navbar() {
     let cancelled = false
     const checkCasas = async () => {
       try {
+        // Sinais imediatos: admin vê tudo; se vier casaId do login, já considera true
+        if (currentUser?.isAdmin) {
+          if (!cancelled) setHasCasas(true)
+          return
+        }
+        if (currentUser?.casaId) {
+          if (!cancelled) setHasCasas(true)
+          // continua para confirmar pelo backend, mas já habilita o menu
+        }
         if (currentUser?.idConta) {
           const resp = await listarCasas(currentUser.idConta)
           if (!cancelled) setHasCasas(Array.isArray(resp.data) && resp.data.length > 0)
         } else {
           if (!cancelled) setHasCasas(false)
         }
-      } catch {
+      } catch (e) {
         if (!cancelled) setHasCasas(false)
       }
     }
@@ -92,6 +101,7 @@ function Navbar() {
       localStorage.removeItem('user')
     } catch {}
     setCurrentUser(null)
+    setHasCasas(false)
     // fecha o drawer caso esteja aberto e volta para a home
     if (mobileOpen) setMobileOpen(false)
     navigate('/')
