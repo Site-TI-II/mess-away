@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   AppBar,
   Toolbar,
@@ -19,8 +19,17 @@ import { useTheme } from '@mui/material/styles'
 
 function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const raw = localStorage.getItem('user')
+      return raw ? JSON.parse(raw) : null
+    } catch {
+      return null
+    }
+  })
   const theme = useTheme()
   const location = useLocation() // Para destacar rota ativa
+  const navigate = useNavigate()
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen)
@@ -37,6 +46,32 @@ function Navbar() {
     { text: 'Login', path: '/login' },
     { text: 'Registrar', path: '/register' }
   ]
+
+  // Atualiza o estado do usuário ao trocar de rota (ex: após login navega para /casas)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('user')
+      const parsed = raw ? JSON.parse(raw) : null
+      setCurrentUser(parsed)
+    } catch {
+      setCurrentUser(null)
+    }
+  }, [location])
+
+  const getUserDisplayName = (user) => {
+    if (!user) return ''
+    return user.nome || user.apelido || user.email || 'Usuário'
+  }
+
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem('user')
+    } catch {}
+    setCurrentUser(null)
+    // fecha o drawer caso esteja aberto e volta para a home
+    if (mobileOpen) setMobileOpen(false)
+    navigate('/')
+  }
 
   return (
     <>
@@ -140,31 +175,68 @@ function Navbar() {
                 }} 
               />
 
-              {/* Botões de Auth */}
-              {authItems.map((item) => (
-                <Button
-                  key={item.text}
-                  component={Link}
-                  to={item.path}
-                  variant={item.text === 'Registrar' ? 'contained' : 'outlined'}
-                  sx={{
-                    color: item.text === 'Registrar' ? 'primary.dark' : 'white',
-                    bgcolor: item.text === 'Registrar' ? 'white' : 'transparent',
-                    borderColor: 'white',
-                    px: 2.5,
-                    py: 0.75,
-                    fontWeight: 500,
-                    '&:hover': {
-                      bgcolor: item.text === 'Registrar' 
-                        ? 'grey.100' 
-                        : theme.palette.overlay.light,
-                      borderColor: 'white'
-                    }
-                  }}
-                >
-                  {item.text}
-                </Button>
-              ))}
+              {/* Auth ou Usuário logado */}
+              {currentUser ? (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, color: 'white' }}>
+                  <Box
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: '50%',
+                      bgcolor: 'rgba(255,255,255,0.25)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 700
+                    }}
+                    aria-label="avatar"
+                    title={getUserDisplayName(currentUser)}
+                  >
+                    {getUserDisplayName(currentUser).charAt(0).toUpperCase()}
+                  </Box>
+                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                    {getUserDisplayName(currentUser)}
+                  </Typography>
+                  <Button
+                    onClick={handleLogout}
+                    variant="outlined"
+                    sx={{
+                      color: 'white',
+                      borderColor: 'white',
+                      px: 2,
+                      py: 0.5,
+                      '&:hover': { bgcolor: theme.palette.overlay.light, borderColor: 'white' }
+                    }}
+                  >
+                    Sair
+                  </Button>
+                </Box>
+              ) : (
+                authItems.map((item) => (
+                  <Button
+                    key={item.text}
+                    component={Link}
+                    to={item.path}
+                    variant={item.text === 'Registrar' ? 'contained' : 'outlined'}
+                    sx={{
+                      color: item.text === 'Registrar' ? 'primary.dark' : 'white',
+                      bgcolor: item.text === 'Registrar' ? 'white' : 'transparent',
+                      borderColor: 'white',
+                      px: 2.5,
+                      py: 0.75,
+                      fontWeight: 500,
+                      '&:hover': {
+                        bgcolor: item.text === 'Registrar' 
+                          ? 'grey.100' 
+                          : theme.palette.overlay.light,
+                        borderColor: 'white'
+                      }
+                    }}
+                  >
+                    {item.text}
+                  </Button>
+                ))
+              )}
             </Box>
 
             {/* Mobile Menu Button */}
@@ -266,37 +338,59 @@ function Navbar() {
             }} 
           />
 
-          {/* Auth Items Mobile */}
-          {authItems.map((item) => (
-            <ListItem
-              key={item.text}
-              component={Link}
-              to={item.path}
-              onClick={handleDrawerToggle}
-              sx={{
-                textDecoration: 'none',
-                color: 'white',
-                borderRadius: 2,
-                mb: 0.5,
-                bgcolor: item.text === 'Registrar' 
-                  ? 'rgba(255, 255, 255, 0.2)' 
-                  : 'transparent',
-                border: item.text === 'Registrar' 
-                  ? '1px solid rgba(255, 255, 255, 0.3)' 
-                  : 'none',
-                '&:hover': {
-                  bgcolor: theme.palette.overlay.light
-                }
-              }}
-            >
-              <ListItemText 
-                primary={item.text}
-                primaryTypographyProps={{
-                  fontWeight: item.text === 'Registrar' ? 600 : 400
+          {/* Auth Items Mobile ou Usuário */}
+          {currentUser ? (
+            <Box sx={{ px: 2, py: 1 }}>
+              <Typography variant="subtitle2" sx={{ opacity: 0.85 }}>Logado como</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                {getUserDisplayName(currentUser)}
+              </Typography>
+              <Button
+                fullWidth
+                onClick={handleLogout}
+                variant="outlined"
+                sx={{
+                  mt: 2,
+                  color: 'white',
+                  borderColor: 'white',
+                  '&:hover': { bgcolor: theme.palette.overlay.light, borderColor: 'white' }
                 }}
-              />
-            </ListItem>
-          ))}
+              >
+                Sair
+              </Button>
+            </Box>
+          ) : (
+            authItems.map((item) => (
+              <ListItem
+                key={item.text}
+                component={Link}
+                to={item.path}
+                onClick={handleDrawerToggle}
+                sx={{
+                  textDecoration: 'none',
+                  color: 'white',
+                  borderRadius: 2,
+                  mb: 0.5,
+                  bgcolor: item.text === 'Registrar' 
+                    ? 'rgba(255, 255, 255, 0.2)' 
+                    : 'transparent',
+                  border: item.text === 'Registrar' 
+                    ? '1px solid rgba(255, 255, 255, 0.3)' 
+                    : 'none',
+                  '&:hover': {
+                    bgcolor: theme.palette.overlay.light
+                  }
+                }}
+              >
+                <ListItemText 
+                  primary={item.text}
+                  primaryTypographyProps={{
+                    fontWeight: item.text === 'Registrar' ? 600 : 400
+                  }}
+                />
+              </ListItem>
+            ))
+          )}
         </List>
       </Drawer>
     </>
