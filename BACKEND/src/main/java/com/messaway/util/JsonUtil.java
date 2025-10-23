@@ -14,7 +14,6 @@ public class JsonUtil {
     public static ResponseTransformer json() {
         return JsonUtil::toJson;
     }
-
     public static JsonElement parse(String json) {
         return gson.fromJson(json, JsonElement.class);
     }

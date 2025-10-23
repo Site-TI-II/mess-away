@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { listarCasas } from '../../../api/casas'
+import { simulatePoints, getCasaPoints } from '../../../api/achievements'
 import {
   AppBar,
   Toolbar,
@@ -21,6 +22,7 @@ import { useTheme } from '@mui/material/styles'
 
 function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [housePoints, setHousePoints] = useState(0)
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const raw = localStorage.getItem('user')
@@ -95,6 +97,24 @@ function Navbar() {
     if (!user) return ''
     return user.nome || user.apelido || user.email || 'Usuário'
   }
+    // Load house points when user changes or has casaId
+    useEffect(() => {
+      if (currentUser?.casaId) {
+        getCasaPoints(currentUser.casaId)
+          .then(casa => setHousePoints(casa.pontos || 0))
+          .catch(console.error)
+      }
+    }, [currentUser])
+
+    const handleSimulateTask = async () => {
+      if (!currentUser?.casaId) return
+      try {
+        const result = await simulatePoints(currentUser.casaId, 5) // 5 points per task
+        setHousePoints(result.newTotal)
+      } catch (error) {
+        console.error('Error simulating points:', error)
+      }
+    }
 
   const handleLogout = () => {
     try {
@@ -212,6 +232,25 @@ function Navbar() {
               {/* Auth ou Usuário logado */}
               {currentUser ? (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, color: 'white' }}>
+                  {/* Points Display */}
+                  {currentUser?.casaId && (
+                    <>
+                      <Chip
+                        label={`${housePoints} pontos`}
+                        color="secondary"
+                        sx={{ fontWeight: 'bold' }}
+                      />
+                      <Button
+                        variant="contained"
+                        color="secondary"
+                        size="small"
+                        onClick={handleSimulateTask}
+                        sx={{ whiteSpace: 'nowrap' }}
+                      >
+                        +5 pontos (Simular)
+                      </Button>
+                    </>
+                  )}
                   <Box
                     sx={{
                       width: 32,
@@ -382,6 +421,29 @@ function Navbar() {
               <Typography variant="h6" sx={{ fontWeight: 700 }}>
                 {getUserDisplayName(currentUser)}
               </Typography>
+                {/* Points Display Mobile */}
+                {currentUser?.casaId && (
+                  <>
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="subtitle2" sx={{ opacity: 0.85 }}>Pontos da Casa</Typography>
+                      <Chip
+                        label={`${housePoints} pontos`}
+                        color="secondary"
+                        sx={{ fontWeight: 'bold', mt: 1 }}
+                      />
+                    </Box>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      color="secondary"
+                      size="small"
+                      onClick={handleSimulateTask}
+                      sx={{ mt: 2 }}
+                    >
+                      +5 pontos (Simular)
+                    </Button>
+                  </>
+                )}
               {currentUser?.isAdmin && (
                 <Chip label="Admin" size="small" color="warning" sx={{ color: 'black', mt: 1 }} />
               )}

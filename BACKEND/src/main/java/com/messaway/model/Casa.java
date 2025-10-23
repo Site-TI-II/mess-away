@@ -9,15 +9,26 @@ public class Casa {
     private String descricao;
     private String endereco;
     private boolean ativo;
+    private int pontos;
 
     public Casa() {
         this.ativo = true;
+        this.pontos = 0;
     }
 
     public Casa(Long id_casa, String nome) {
         this.id_casa = id_casa;
         this.nome = nome;
         this.ativo = true;
+        this.pontos = 0;
+    }
+
+    public int getPontos() {
+        return pontos;
+    }
+
+    public void setPontos(int pontos) {
+        this.pontos = pontos;
     }
 
     public Long getId() {

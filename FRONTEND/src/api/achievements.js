@@ -13,3 +13,11 @@ export const getUserAchievements = (userId) =>
 export const unlockAchievement = (userId, achievementId) =>
   axios.post(`${API_URL}/usuarios/${userId}/achievements/${achievementId}/unlock`)
     .then(response => response.data);
+
+export const simulatePoints = (casaId, points) =>
+  axios.post(`${API_URL}/casas/${casaId}/simulate-points`, { points })
+    .then(response => response.data);
+
+export const getCasaPoints = (casaId) =>
+  axios.get(`${API_URL}/casas/${casaId}`)
+    .then(response => response.data);

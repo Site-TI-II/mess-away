@@ -13,6 +13,17 @@ import java.util.List;
 
 import static spark.Spark.*;
 
+class Points {
+    public int points;
+}
+
+class SimulationResponse {
+    public int newTotal;
+    public SimulationResponse(int newTotal) {
+        this.newTotal = newTotal;
+    }
+}
+
 public class CasaController {
     public static void registerRoutes() {
         Gson gson = new Gson();
@@ -23,6 +34,24 @@ public class CasaController {
             // Let Main.java set the standard CORS headers. For preflight, reply OK.
             response.status(200);
             return "OK";
+        });
+
+        // Test endpoint to simulate points for a house
+        post("/MessAway/casas/:id/simulate-points", (req, res) -> {
+            res.type("application/json");
+            try {
+                long casaId = Long.parseLong(req.params(":id"));
+                var points = gson.fromJson(req.body(), Points.class);
+                
+                var achievementDAO = new com.messaway.dao.AchievementDAO();
+                int newTotal = achievementDAO.simulatePoints(casaId, points.points);
+                
+                res.status(200);
+                return gson.toJson(new SimulationResponse(newTotal));
+            } catch (Exception e) {
+                res.status(500);
+                return gson.toJson(new ErrorResponse("Error simulating points: " + e.getMessage()));
+            }
         });
 
         // Set default response content type for this controller's routes
@@ -143,6 +172,35 @@ public class CasaController {
                 }
             }
             return gson.toJson(casas);
+        });
+
+        // Get single casa by id (includes pontos)
+        get("/MessAway/casas/:id", (req, res) -> {
+            long id = Long.parseLong(req.params(":id"));
+            try (Connection conn = Database.connect()) {
+                try (PreparedStatement stmt = conn.prepareStatement("SELECT * FROM CASA WHERE id_casa = ?")) {
+                    stmt.setLong(1, id);
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (rs.next()) {
+                            Casa casa = new Casa(rs.getLong("id_casa"), rs.getString("nome"));
+                            casa.setDescricao(rs.getString("descricao"));
+                            casa.setEndereco(rs.getString("endereco"));
+                            casa.setAtivo(rs.getBoolean("ativo"));
+                            // pontos column may exist
+                            try {
+                                casa.setPontos(rs.getInt("pontos"));
+                            } catch (SQLException ignore) {}
+                            return gson.toJson(casa);
+                        } else {
+                            res.status(404);
+                            return gson.toJson(new ErrorResponse("Casa não encontrada"));
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                res.status(500);
+                return gson.toJson(new ErrorResponse("Erro ao buscar casa: " + e.getMessage()));
+            }
         });
 
         delete("/MessAway/casas/:id", (req, res) -> {

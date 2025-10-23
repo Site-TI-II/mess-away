@@ -7,7 +7,7 @@ import java.sql.SQLException;
 public class Database {
     private static final String URL = System.getenv("MESSAWAY_DB_URL") != null 
         ? System.getenv("MESSAWAY_DB_URL") 
-        : "jdbc:postgresql://localhost:5432/gestao_casas";
+        : "jdbc:postgresql://localhost:5432/postgres";
     private static final String USER = System.getenv("MESSAWAY_DB_USER") != null 
         ? System.getenv("MESSAWAY_DB_USER") 
         : "postgres";

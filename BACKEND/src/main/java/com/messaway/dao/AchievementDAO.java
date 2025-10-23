@@ -93,6 +93,53 @@ public class AchievementDAO {
         }
     }
 
+    public void awardAchievements(long casaId, int delta, long taskId, long userId) throws SQLException {
+        String sql = """
+            INSERT INTO CASA_POINTS_LOG (id_casa, delta, reason, task_id, user_id)
+            VALUES ( ?, ?, 'task_completion', ?, ? );
+
+            -- Atomically update and get new total
+            WITH updated AS (
+              UPDATE CASA
+              SET pontos = pontos + ? 
+              WHERE id_casa = ? 
+              RETURNING pontos
+            )
+            SELECT pontos FROM updated;
+            -- (use the returned pontos value in next steps)
+
+            -- Then find achievements to award:
+            INSERT INTO CASA_ACHIEVEMENT (id_casa, id_achievement)
+            SELECT ?, a.id_achievement
+            FROM ACHIEVEMENT a
+            WHERE a.requirement_type = 'HOUSE_POINTS' AND a.requirement_value <= ?
+              AND NOT EXISTS (
+                SELECT 1 FROM CASA_ACHIEVEMENT ca WHERE ca.id_casa = ? AND ca.id_achievement = a.id_achievement
+              );
+        """;
+        try (Connection conn = Database.connect();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            conn.setAutoCommit(false);
+            
+            stmt.setLong(1, casaId);
+            stmt.setInt(2, delta);
+            stmt.setLong(3, taskId);
+            stmt.setLong(4, userId);
+            stmt.setInt(5, delta);
+            stmt.setLong(6, casaId);
+            stmt.setLong(7, casaId);
+            stmt.setInt(8, delta);
+            stmt.setLong(9, casaId);
+            
+            stmt.executeUpdate();
+            conn.commit();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
     private Achievement mapResultSetToAchievement(ResultSet rs) throws SQLException {
         return new Achievement(
             rs.getLong("id_achievement"),
@@ -103,5 +150,62 @@ public class AchievementDAO {
             rs.getInt("requirement_value"),
             rs.getString("data_criacao")
         );
+    }
+
+    public int simulatePoints(long casaId, int points) throws SQLException {
+        String sql = """
+            WITH point_log AS (
+                INSERT INTO CASA_POINTS_LOG (id_casa, delta, reason)
+                VALUES (?, ?, 'manual_simulation')
+            ),
+            updated AS (
+                UPDATE CASA
+                SET pontos = pontos + ?
+                WHERE id_casa = ?
+                RETURNING pontos
+            )
+            SELECT pontos FROM updated;
+        """;
+
+        String awardSql = """
+            INSERT INTO CASA_ACHIEVEMENT (id_casa, id_achievement)
+            SELECT ?, a.id_achievement
+            FROM ACHIEVEMENT a
+            WHERE a.requirement_type = 'HOUSE_POINTS' 
+            AND a.requirement_value <= (SELECT pontos FROM CASA WHERE id_casa = ?)
+            AND NOT EXISTS (
+                SELECT 1 FROM CASA_ACHIEVEMENT ca 
+                WHERE ca.id_casa = ? AND ca.id_achievement = a.id_achievement
+            );
+        """;
+
+        try (Connection conn = Database.connect()) {
+            conn.setAutoCommit(false);
+            
+            // First add points and log
+            int finalPoints;
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setLong(1, casaId);
+                stmt.setInt(2, points);
+                stmt.setInt(3, points);
+                stmt.setLong(4, casaId);
+                
+                try (ResultSet rs = stmt.executeQuery()) {
+                    rs.next();
+                    finalPoints = rs.getInt("pontos");
+                }
+            }
+
+            // Then award achievements
+            try (PreparedStatement stmt = conn.prepareStatement(awardSql)) {
+                stmt.setLong(1, casaId);
+                stmt.setLong(2, casaId);
+                stmt.setLong(3, casaId);
+                stmt.executeUpdate();
+            }
+
+            conn.commit();
+            return finalPoints;
+        }
     }
 }
