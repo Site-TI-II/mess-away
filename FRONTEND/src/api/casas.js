@@ -22,3 +22,13 @@ export const criarCasa = (casa, idConta) => {
 };
 
 export const deletarCasa = (id) => axiosInstance.delete(`${API}/${id}`);
+
+export const listUsuariosByCasa = async (idCasa) => {
+  try {
+    const response = await axiosInstance.get(`${API}/${idCasa}/usuarios`);
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao listar usuários da casa:', error);
+    throw error;
+  }
+};

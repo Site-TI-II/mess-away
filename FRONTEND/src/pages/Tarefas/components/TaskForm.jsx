@@ -19,9 +19,14 @@ import {
   Add as AddIcon
 } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
-import { listaDeResponsaveis, coresPorResponsavel, PRAZOS } from '../constants/taskConstants'
 
-function TaskForm({ tarefa, setTarefa, responsavel, setResponsavel, prazo, setPrazo, onAdd }) {
+function TaskForm({ 
+  tarefa, setTarefa, 
+  responsavel, setResponsavel, 
+  prazo, setPrazo,
+  onAdd,
+  pessoas = []
+}) {
   const theme = useTheme()
 
   const handleKeyPress = (e) => {
@@ -70,7 +75,7 @@ function TaskForm({ tarefa, setTarefa, responsavel, setResponsavel, prazo, setPr
         </Grid>
 
         {/* Responsável */}
-        <Grid item xs={12} sm={6} md={5}>
+        <Grid item xs={12} sm={6} md={6}>
           <FormControl fullWidth>
             <InputLabel>Responsável</InputLabel>
             <Select
@@ -84,19 +89,9 @@ function TaskForm({ tarefa, setTarefa, responsavel, setResponsavel, prazo, setPr
               }
               sx={{ borderRadius: 2 }}
             >
-              {listaDeResponsaveis.map((nome) => (
-                <MenuItem key={nome} value={nome}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box
-                      sx={{
-                        width: 12,
-                        height: 12,
-                        borderRadius: '50%',
-                        bgcolor: coresPorResponsavel[nome]
-                      }}
-                    />
-                    {nome}
-                  </Box>
+              {pessoas.map((pessoa) => (
+                <MenuItem key={pessoa.idUsuario} value={pessoa.idUsuario}>
+                  {pessoa.nome}
                 </MenuItem>
               ))}
             </Select>
@@ -104,27 +99,27 @@ function TaskForm({ tarefa, setTarefa, responsavel, setResponsavel, prazo, setPr
         </Grid>
 
         {/* Prazo */}
-        <Grid item xs={12} sm={6} md={5}>
-          <FormControl fullWidth>
-            <InputLabel>Prazo</InputLabel>
-            <Select
-              value={prazo}
-              label="Prazo"
-              onChange={(e) => setPrazo(e.target.value)}
-              startAdornment={
+        <Grid item xs={12} sm={6} md={4}>
+          <TextField
+            label="Prazo"
+            type="date"
+            fullWidth
+            value={prazo}
+            onChange={(e) => setPrazo(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            InputProps={{
+              startAdornment: (
                 <InputAdornment position="start">
                   <CalendarIcon color="action" />
                 </InputAdornment>
+              )
+            }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2
               }
-              sx={{ borderRadius: 2 }}
-            >
-              {PRAZOS.map((p) => (
-                <MenuItem key={p.value} value={p.value}>
-                  {p.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+            }}
+          />
         </Grid>
 
         {/* Botão Adicionar */}
