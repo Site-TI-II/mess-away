@@ -19,6 +19,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import CloseIcon from '@mui/icons-material/Close';
+import { useLocation } from 'react-router-dom';
 
 import { listarCasas, criarCasa, deletarCasa } from '../../api/casas';
 import { listUsuariosByConta, addUsuarioToConta, deleteUsuarioFromConta } from '../../api/contas';
@@ -29,6 +30,7 @@ import CasaCard from './components/CasaCard';
 import CasaDetails from './components/CasaDetails';
 
 function Casas() {
+  const location = useLocation();
   const [casas, setCasas] = useState([]);
   const [casaSelecionadaId, setCasaSelecionadaId] = useState(null);
   const [addPessoaDialogOpen, setAddPessoaDialogOpen] = useState(false);
@@ -44,7 +46,13 @@ function Casas() {
     const user = JSON.parse(localStorage.getItem('user') || 'null');
     listarCasas(user?.idConta).then(res => {
       setCasas(res.data);
-      if (res.data.length > 0) {
+      
+      // Se vier do Dashboard com uma casa selecionada, use ela
+      const casaIdFromDashboard = location.state?.casaSelecionadaId;
+      
+      if (casaIdFromDashboard && res.data.some(c => c.id === casaIdFromDashboard)) {
+        setCasaSelecionadaId(casaIdFromDashboard);
+      } else if (res.data.length > 0) {
         setCasaSelecionadaId(res.data[0].id);
       } else {
         setCasaSelecionadaId(null);

@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react'
 import { Box, Container, Typography, Grid } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useNavigate } from 'react-router-dom'
 import InsightBanner from './components/InsightBanner'
 import CasasSection from './components/CasasSection'
 import AlertsSection from './components/AlertsSection'
 import QuickActionsSection from './components/QuickActionsSection'
 import MotivationalSection from './components/MotivationalSection'
+import { listarCasas } from '../../api/casas'
 
 /**
  * Dashboard - Página principal do sistema
@@ -22,6 +24,7 @@ import MotivationalSection from './components/MotivationalSection'
  */
 function Dashboard() {
   const theme = useTheme()
+  const navigate = useNavigate()
 
   // Estados para dados (preparado para integração com API)
   const [casas, setCasas] = useState([])
@@ -38,16 +41,41 @@ function Dashboard() {
   const loadDashboardData = async () => {
     setLoading(true)
     
-    // Simular delay de API
-    await new Promise(resolve => setTimeout(resolve, 500))
+    try {
+      // Buscar usuário logado
+      const userJson = localStorage.getItem('user')
+      if (!userJson) {
+        navigate('/login')
+        return
+      }
 
-    // Aqui você faria:
-    // const response = await api.get('/dashboard')
-    // setCasas(response.casas)
-    // setAlerts(response.alerts)
-    // etc...
+      const user = JSON.parse(userJson)
+      const idConta = user?.idConta
 
-    setLoading(false)
+      if (!idConta) {
+        console.warn('Conta não encontrada no usuário')
+        setLoading(false)
+        return
+      }
+
+      // Carregar casas reais do banco
+      const casasResponse = await listarCasas(idConta)
+      const casasComTarefas = casasResponse.data.map(casa => ({
+        id: casa.id,
+        nome: casa.nome,
+        imagem: casa.imagem,
+        // Simular contagem de tarefas (depois pode vir do backend)
+        tarefasPendentes: Math.floor(Math.random() * 15),
+        tarefasConcluidas: Math.floor(Math.random() * 20) + 10,
+        totalTarefas: 30
+      }))
+
+      setCasas(casasComTarefas)
+    } catch (error) {
+      console.error('Erro ao carregar dados do dashboard:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (

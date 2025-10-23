@@ -10,35 +10,19 @@ import { getHouseStatus, HOUSE_STATUS_CONFIG } from '../constants/dashboardConst
  * CasasSection - Seção com cards de casas
  * 
  * Funcionalidades:
- * - Exibe cards de todas as casas cadastradas
+ * - Exibe cards de todas as casas cadastradas do usuário logado
  * - Mostra status visual de cada casa
  * - Progress bar de conclusão de tarefas
  * - Botão para adicionar nova casa
  * - Cards responsivos em grid
+ * - Ao clicar em "Ver Detalhes", navega para a casa selecionada em /casas
  */
 function CasasSection({ casas = [] }) {
   const theme = useTheme()
   const navigate = useNavigate()
 
-  // Se não tiver casas, usa dados mockados para exemplo
-  const casasData = casas.length > 0 ? casas : [
-    {
-      id: 1,
-      nome: 'Casa Principal',
-      tarefasPendentes: 12,
-      tarefasConcluidas: 18,
-      totalTarefas: 30,
-      foto: null
-    },
-    {
-      id: 2,
-      nome: 'Casa de Praia',
-      tarefasPendentes: 3,
-      tarefasConcluidas: 27,
-      totalTarefas: 30,
-      foto: null
-    }
-  ]
+  // Se não tiver casas, mostra apenas o card de adicionar
+  const casasData = casas.length > 0 ? casas : []
 
   // Calcular porcentagem de conclusão
   const calcularProgresso = (casa) => {
@@ -46,14 +30,15 @@ function CasasSection({ casas = [] }) {
     return Math.round((casa.tarefasConcluidas / casa.totalTarefas) * 100)
   }
 
-  // Handler para navegar para detalhes da casa
+  // Handler para navegar para a casa selecionada na página Casas
   const handleVerDetalhes = (casaId) => {
-    navigate(`/casas/${casaId}`)
+    // Navega para /casas e guarda o ID da casa selecionada
+    navigate('/casas', { state: { casaSelecionadaId: casaId } })
   }
 
   // Handler para adicionar nova casa
   const handleAdicionarCasa = () => {
-    navigate('/casas/nova')
+    navigate('/casas')
   }
 
   return (
