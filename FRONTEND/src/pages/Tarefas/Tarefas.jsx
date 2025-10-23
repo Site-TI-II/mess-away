@@ -30,6 +30,7 @@ function Tarefas() {
   const [tarefa, setTarefa] = useState('')
   const [responsavel, setResponsavel] = useState('')
   const [prazo, setPrazo] = useState('')
+  const [diaria, setDiaria] = useState(false)
   // (sem inputs de cômodo e categoria na UI — usaremos defaults)
   
   // Dados da API
@@ -131,7 +132,8 @@ function Tarefas() {
         idUsuario: responsavel,
         idCasa: casaAtual?.id,
         dataEstimada: prazo, // formato ISO string
-        frequencia: 1
+        // convencao: frequencia = 1 para diarias; 0 para tarefas normais
+        frequencia: diaria ? 1 : 0
       }
 
       await criarTarefa(novaTarefa)
@@ -144,6 +146,7 @@ function Tarefas() {
       setTarefa('')
       setResponsavel('')
       setPrazo('')
+      setDiaria(false)
 
     } catch (err) {
       console.error('Erro ao adicionar tarefa:', err)
@@ -231,6 +234,8 @@ function Tarefas() {
           setResponsavel={setResponsavel}
           prazo={prazo}
           setPrazo={setPrazo}
+          diaria={diaria}
+          setDiaria={setDiaria}
           onAdd={adicionarTarefa}
           pessoas={pessoas}
         />

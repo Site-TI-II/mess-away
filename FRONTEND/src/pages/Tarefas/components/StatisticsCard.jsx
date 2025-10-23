@@ -4,12 +4,22 @@ import { Box, Paper, Typography, Chip, Divider } from '@mui/material'
 import { TrendingUp as TrendingUpIcon } from '@mui/icons-material'
 import { coresPorResponsavel } from '../constants/taskConstants'
 
+function getColorForName(name) {
+  if (coresPorResponsavel && coresPorResponsavel[name]) return coresPorResponsavel[name]
+  // fallback: hash the name to a hue
+  const hash = (name || '').split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0)
+  const hue = hash % 360
+  return `hsl(${hue}, 60%, 40%)`
+}
+
 function StatisticsCard({ lista }) {
   const contarPorResponsavel = () => {
     const contagem = {}
-    lista.forEach(({ responsavel, concluida }) => {
-      if (concluida) {
-        contagem[responsavel] = (contagem[responsavel] || 0) + 1
+    lista.forEach((item) => {
+      // incluir tarefas concluídas nas estatísticas
+      if (item.concluida) {
+        const nome = item.nomeResponsavel || 'Desconhecido'
+        contagem[nome] = (contagem[nome] || 0) + 1
       }
     })
     return contagem
@@ -64,7 +74,7 @@ function StatisticsCard({ lista }) {
               <Box
                 key={nome}
                 sx={{
-                  bgcolor: coresPorResponsavel[nome],
+                  bgcolor: getColorForName(nome),
                   borderRadius: 2,
                   p: 2,
                   mb: 1.5,

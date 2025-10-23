@@ -12,6 +12,7 @@ import {
   InputAdornment,
   Box
 } from '@mui/material'
+import { Checkbox, FormControlLabel } from '@mui/material'
 import {
   Assignment as AssignmentIcon,
   Person as PersonIcon,
@@ -24,6 +25,7 @@ function TaskForm({
   tarefa, setTarefa, 
   responsavel, setResponsavel, 
   prazo, setPrazo,
+  diaria, setDiaria,
   onAdd,
   pessoas = []
 }) {
@@ -74,8 +76,8 @@ function TaskForm({
           />
         </Grid>
 
-        {/* Responsável */}
-        <Grid item xs={12} sm={6} md={6}>
+  {/* Responsável */}
+  <Grid item xs={12} sm={6} md={5}>
           <FormControl fullWidth>
             <InputLabel>Responsável</InputLabel>
             <Select
@@ -99,7 +101,7 @@ function TaskForm({
         </Grid>
 
         {/* Prazo */}
-        <Grid item xs={12} sm={6} md={4}>
+        <Grid item xs={12} sm={6} md={3}>
           <TextField
             label="Prazo"
             type="date"
@@ -119,6 +121,14 @@ function TaskForm({
                 borderRadius: 2
               }
             }}
+          />
+        </Grid>
+
+        {/* Diária */}
+        <Grid item xs={12} sm={6} md={2}>
+          <FormControlLabel
+            control={<Checkbox checked={diaria} onChange={(e) => setDiaria(e.target.checked)} />}
+            label="Tarefa diária"
           />
         </Grid>
 

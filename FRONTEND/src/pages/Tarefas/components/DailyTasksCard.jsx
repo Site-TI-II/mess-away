@@ -5,7 +5,8 @@ import { CalendarToday as CalendarIcon } from '@mui/icons-material'
 import TaskItem from './TaskItem'
 
 function DailyTasksCard({ lista, onComplete }) {
-  const tarefasDiarias = lista.filter(item => item.prazo === 'Diária')
+  // convencao: frequencia === 1 => tarefa diária
+  const tarefasDiarias = lista.filter(item => Number(item.frequencia) === 1)
 
   return (
     <Paper
@@ -48,11 +49,11 @@ function DailyTasksCard({ lista, onComplete }) {
           </Typography>
         ) : (
           <List sx={{ p: 0 }}>
-            {tarefasDiarias.map((item) => (
+            {tarefasDiarias.map((item, idx) => (
               <TaskItem
-                key={lista.indexOf(item)}
+                key={item.idTarefa || idx}
                 item={item}
-                index={lista.indexOf(item)}
+                index={idx}
                 onComplete={onComplete}
                 onDelete={() => {}}
                 compact
