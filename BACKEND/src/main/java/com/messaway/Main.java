@@ -57,6 +57,9 @@ public class Main {
         get("/MessAway/casa/:idCasa/meta-gasto", GastoController::getMetaGasto);
 
         // Mensagem de inicialização
+        awaitInitialization();
         System.out.println("🚀 Servidor Spark iniciado na porta 4567");
+        // Mantém a aplicação viva até receber sinal de parada
+        awaitStop();
     }
 }

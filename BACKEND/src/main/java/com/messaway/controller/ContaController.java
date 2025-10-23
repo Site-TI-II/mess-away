@@ -20,10 +20,12 @@ public class ContaController {
         post("/MessAway/contas", (req, res) -> createConta(req, res));
         post("/MessAway/contas/:id/usuarios", (req, res) -> addUsuarioToConta(req, res));
         get("/MessAway/contas/:id/usuarios", (req, res) -> listUsuariosByConta(req, res));
+    post("/MessAway/contas/:id/admin", (req, res) -> toggleAdmin(req, res));
 
         post("/api/contas", (req, res) -> createConta(req, res));
         post("/api/contas/:id/usuarios", (req, res) -> addUsuarioToConta(req, res));
         get("/api/contas/:id/usuarios", (req, res) -> listUsuariosByConta(req, res));
+    post("/api/contas/:id/admin", (req, res) -> toggleAdmin(req, res));
     }
 
     public static String createConta(Request req, Response res) {
@@ -139,5 +141,31 @@ public class ContaController {
             return JsonUtil.toJson("Erro ao listar usuários da conta");
         }
         return JsonUtil.toJson(list);
+    }
+
+    public static String toggleAdmin(Request req, Response res) {
+        int idConta = Integer.parseInt(req.params(":id"));
+        try (Connection conn = Database.getConnection()) {
+            JsonObject body = JsonUtil.parse(req.body()).getAsJsonObject();
+            boolean isAdmin = body.has("isAdmin") && !body.get("isAdmin").isJsonNull() && body.get("isAdmin").getAsBoolean();
+            try (PreparedStatement stmt = conn.prepareStatement("UPDATE CONTA SET is_admin = ? WHERE id_conta = ?")) {
+                stmt.setBoolean(1, isAdmin);
+                stmt.setInt(2, idConta);
+                int updated = stmt.executeUpdate();
+                if (updated > 0) {
+                    JsonObject resp = new JsonObject();
+                    resp.addProperty("idConta", idConta);
+                    resp.addProperty("isAdmin", isAdmin);
+                    res.status(200);
+                    return JsonUtil.toJson(resp);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            res.status(500);
+            return JsonUtil.toJson("Erro ao atualizar privilégio de admin");
+        }
+        res.status(404);
+        return JsonUtil.toJson("Conta não encontrada");
     }
 }

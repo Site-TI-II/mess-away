@@ -42,7 +42,7 @@ function Casas() {
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user') || 'null');
-    listarCasas().then(res => {
+    listarCasas(user?.idConta).then(res => {
       setCasas(res.data);
       if (res.data.length > 0) {
         setCasaSelecionadaId(res.data[0].id);
@@ -81,10 +81,12 @@ function Casas() {
     const nome = (nomeOpcional ?? novoNomeCasa).trim();
     if (nome === '') return;
     const novaCasa = { nome };
-    criarCasa(novaCasa)
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    const idConta = user?.idConta;
+    criarCasa(novaCasa, idConta)
       .then((response) => {
         console.log('Casa criada com sucesso:', response.data);
-        return listarCasas();
+        return listarCasas(idConta);
       })
       .then(res => {
         console.log('Casas atualizadas:', res.data);
@@ -100,8 +102,9 @@ function Casas() {
 
   const handleDeletarCasa = (casaId) => {
     if (window.confirm("Tem certeza que deseja deletar esta casa?")) {
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
       deletarCasa(casaId).then(() => {
-        listarCasas().then(res => setCasas(res.data));
+        listarCasas(user?.idConta).then(res => setCasas(res.data));
       });
     }
   };
