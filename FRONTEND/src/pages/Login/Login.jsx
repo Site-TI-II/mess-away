@@ -75,6 +75,8 @@ function Login() {
       // Normalize and store the actual usuario object in localStorage (backend returns { authenticated, usuario })
       const storedUser = user && user.usuario ? user.usuario : user
       if (user && user.idConta) storedUser.idConta = user.idConta
+      if (user && user.casaId) storedUser.casaId = user.casaId
+      console.log('Login successful, user:', storedUser)
       localStorage.setItem('user', JSON.stringify(storedUser))
       // Se o login for bem-sucedido, redireciona para Casas
       navigate('/casas')

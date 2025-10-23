@@ -217,11 +217,18 @@ public class UsuarioController {
                 res.cookie("userId", String.valueOf(u.getId()));
                 // Try to find an associated conta (if any)
                 Integer idConta = null;
+                Integer casaId = null;
                 try (var conn = Database.getConnection();
-                     var pst = conn.prepareStatement("SELECT id_conta FROM CONTA_USUARIO WHERE id_usuario = ? LIMIT 1")) {
+                     var pst = conn.prepareStatement(
+                         "SELECT cu.id_conta, c.id_casa FROM CONTA_USUARIO cu " +
+                         "JOIN CONTA c ON cu.id_conta = c.id_conta " +
+                         "WHERE cu.id_usuario = ? LIMIT 1")) {
                     pst.setLong(1, u.getId());
                     try (var rs = pst.executeQuery()) {
-                        if (rs.next()) idConta = rs.getInt("id_conta");
+                        if (rs.next()) {
+                            idConta = rs.getInt("id_conta");
+                            casaId = rs.getObject("id_casa") != null ? rs.getInt("id_casa") : null;
+                        }
                     }
                 } catch (Exception ex) {
                     // ignore lookup errors, login still succeeds
@@ -229,10 +236,13 @@ public class UsuarioController {
                 // Fallback: owner by email (account created during register without mapping)
                 if (idConta == null) {
                     try (var conn = Database.getConnection();
-                         var pst = conn.prepareStatement("SELECT id_conta FROM CONTA WHERE email = ? LIMIT 1")) {
+                         var pst = conn.prepareStatement("SELECT id_conta, id_casa FROM CONTA WHERE email = ? LIMIT 1")) {
                         pst.setString(1, u.getEmail());
                         try (var rs = pst.executeQuery()) {
-                            if (rs.next()) idConta = rs.getInt("id_conta");
+                            if (rs.next()) {
+                                idConta = rs.getInt("id_conta");
+                                casaId = rs.getObject("id_casa") != null ? rs.getInt("id_casa") : null;
+                            }
                         }
                     } catch (Exception ex) {
                         // ignore
@@ -240,11 +250,12 @@ public class UsuarioController {
                 }
 
                 res.status(200);
-                if (idConta != null) {
-                    return gson.toJson(java.util.Map.of("authenticated", true, "usuario", u, "idConta", idConta));
-                } else {
-                    return gson.toJson(java.util.Map.of("authenticated", true, "usuario", u));
-                }
+                java.util.Map<String, Object> result = new java.util.HashMap<>();
+                result.put("authenticated", true);
+                result.put("usuario", u);
+                if (idConta != null) result.put("idConta", idConta);
+                if (casaId != null) result.put("casaId", casaId);
+                return gson.toJson(result);
             } catch (SQLException e) {
                 res.status(500);
                 return gson.toJson(new Error("DB error: " + e.getMessage()));

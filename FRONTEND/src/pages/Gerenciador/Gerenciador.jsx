@@ -37,12 +37,24 @@ function Gerenciador() {
       navigate("/login");
       return;
     }
+    
     const user = JSON.parse(userJson);
-    const casaIdFromStorage = user.casaId;
+    let casaIdFromStorage = user.casaId || user.idCasa;
+    
+    // If casaId not in user object, try to get it from the account
+    if (!casaIdFromStorage && user.idConta) {
+      // We'll fetch it from the backend - for now just redirect to dashboard
+      console.log("User doesn't have casaId, redirecting to dashboard");
+      navigate("/dashboard");
+      return;
+    }
+    
     if (!casaIdFromStorage) {
+      console.log("No casaId found, redirecting to home");
       navigate("/");
       return;
     }
+    
     setCasaId(casaIdFromStorage);
 
     const loadData = async () => {
@@ -56,6 +68,7 @@ function Gerenciador() {
           setObjetivo(metaData.valor.toString());
         }
       } catch (err) {
+        console.error("Error loading data:", err);
         setError("Erro ao carregar dados. Por favor, tente novamente.");
       } finally {
         setLoading(false);

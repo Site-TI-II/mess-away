@@ -40,12 +40,21 @@ public class Main {
         InsightController.registerRoutes();
     com.messaway.controller.ContaController.registerRoutes();
 
-        // Rotas de Gastos
+        // Rotas de Gastos (dual routes for compatibility)
         get("/api/casa/:idCasa/gastos", GastoController::getAllGastosByCasa);
+        get("/MessAway/casa/:idCasa/gastos", GastoController::getAllGastosByCasa);
+        
         post("/api/gastos", GastoController::createGasto);
+        post("/MessAway/gastos", GastoController::createGasto);
+        
         delete("/api/gastos/:idGasto", GastoController::deleteGasto);
+        delete("/MessAway/gastos/:idGasto", GastoController::deleteGasto);
+        
         post("/api/casa/meta-gasto", GastoController::setMetaGasto);
+        post("/MessAway/casa/meta-gasto", GastoController::setMetaGasto);
+        
         get("/api/casa/:idCasa/meta-gasto", GastoController::getMetaGasto);
+        get("/MessAway/casa/:idCasa/meta-gasto", GastoController::getMetaGasto);
 
         // Mensagem de inicialização
         System.out.println("🚀 Servidor Spark iniciado na porta 4567");
