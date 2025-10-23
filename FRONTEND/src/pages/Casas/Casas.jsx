@@ -14,6 +14,7 @@ import {
   DialogTitle,
   TextField
 } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -21,6 +22,11 @@ import CloseIcon from '@mui/icons-material/Close';
 
 import { listarCasas, criarCasa, deletarCasa } from '../../api/casas';
 import { listUsuariosByConta, addUsuarioToConta } from '../../api/contas';
+// Componentes do novo frontend (pós-merge)
+import AddCasaDialog from './components/AddCasaDialog';
+import AddPessoaDialog from './components/AddPessoaDialog';
+import CasaCard from './components/CasaCard';
+import CasaDetails from './components/CasaDetails';
 
 function Casas() {
   const [casas, setCasas] = useState([]);
@@ -70,9 +76,11 @@ function Casas() {
     }
   }, [casas, casaSelecionadaId]);
 
-  const handleAdicionarCasa = () => {
-    if (novoNomeCasa.trim() === '') return;
-    const novaCasa = { nome: novoNomeCasa };
+  // Aceita nome opcional vindo do AddCasaDialog
+  const handleAdicionarCasa = (nomeOpcional) => {
+    const nome = (nomeOpcional ?? novoNomeCasa).trim();
+    if (nome === '') return;
+    const novaCasa = { nome };
     criarCasa(novaCasa)
       .then((response) => {
         console.log('Casa criada com sucesso:', response.data);
@@ -98,19 +106,21 @@ function Casas() {
     }
   };
 
-  const handleAdicionarPessoa = () => {
-    if (novoNomePessoa.trim() === '') return;
+  // Aceita nome opcional vindo do AddPessoaDialog
+  const handleAdicionarPessoa = (nomeOpcional) => {
+    const nome = (nomeOpcional ?? novoNomePessoa).trim();
+    if (nome === '') return;
     const user = JSON.parse(localStorage.getItem('user') || 'null');
     if (!user || !user.idConta) {
       alert('Conta não encontrada. Faça login ou crie uma conta primeiro.');
       return;
     }
     // call backend to create profile (no idUsuario)
-    addUsuarioToConta(user.idConta, { apelido: novoNomePessoa, cor: '#673ab7', permissao: 'Membro' }).then((res) => {
+    addUsuarioToConta(user.idConta, { apelido: nome, cor: '#673ab7', permissao: 'Membro' }).then((res) => {
       // res is created ContaUsuario
       const novasCasas = casas.map(casa => {
         if (casa.id === casaSelecionadaId || casaSelecionadaId == null) {
-          const novaPessoa = { id: res.id, nome: res.apelido || novoNomePessoa, papel: res.permissao || 'Membro', cor: res.cor };
+          const novaPessoa = { id: res.id, nome: res.apelido || nome, papel: res.permissao || 'Membro', cor: res.cor };
           const existentes = casa.pessoas || [];
           const dedup = [...existentes, novaPessoa].reduce((acc, p) => {
             if (!acc.some(x => x.id === p.id)) acc.push(p);
@@ -137,6 +147,20 @@ function Casas() {
       return casa;
     });
     setCasas(novasCasas);
+  };
+
+  // Editar nome da casa (somente client-side por enquanto)
+  const handleEditarCasaNome = (casaId, novoNome) => {
+    setCasas(prev => prev.map(c => c.id === casaId ? { ...c, nome: novoNome } : c));
+  };
+
+  // Editar nome da pessoa (somente client-side por enquanto)
+  const handleEditarPessoaNome = (pessoaId, novoNome) => {
+    setCasas(prev => prev.map(c => {
+      if (c.id !== casaSelecionadaId) return c;
+      const pessoas = (c.pessoas || []).map(p => p.id === pessoaId ? { ...p, nome: novoNome } : p);
+      return { ...c, pessoas };
+    }));
   };
 
   const handleStartEdit = (item) => {
@@ -181,26 +205,11 @@ function Casas() {
         <Button variant="contained" onClick={() => setAddCasaDialogOpen(true)} sx={{ mt: 2 }}>
           Adicionar Primeira Casa
         </Button>
-        <Dialog open={addCasaDialogOpen} onClose={() => setAddCasaDialogOpen(false)}>
-          <DialogTitle>Adicionar Nova Casa</DialogTitle>
-          <DialogContent>
-            <TextField
-              autoFocus
-              margin="dense"
-              label="Nome da Casa"
-              type="text"
-              fullWidth
-              variant="standard"
-              value={novoNomeCasa}
-              onChange={(e) => setNovoNomeCasa(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAdicionarCasa()}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setAddCasaDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleAdicionarCasa}>Salvar</Button>
-          </DialogActions>
-        </Dialog>
+        <AddCasaDialog
+          open={addCasaDialogOpen}
+          onClose={() => setAddCasaDialogOpen(false)}
+          onAdd={(nomeCasa) => handleAdicionarCasa(nomeCasa)}
+        />
       </Box>
     );
   }
@@ -210,148 +219,54 @@ function Casas() {
   return (
     <>
       <Box sx={{ minHeight: '100vh', p: 3 }}>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', mb: 3, alignItems: 'center' }}>
-          {casas.map(casa => (
-            <Box key={casa.id} sx={{ position: 'relative', mr: 1, mb: 1 }}>
-              <Button
-                variant={casa.id === casaSelecionadaId ? "contained" : "outlined"}
-                onClick={() => setCasaSelecionadaId(casa.id)}
-                sx={{ pr: '30px' }}
-              >
-                {casa.nome}
-              </Button>
-              <IconButton
-                size="small"
-                onClick={() => handleDeletarCasa(casa.id)}
-                sx={{ position: 'absolute', top: 0, right: 0, p: '4px' }}
-              >
-                <CloseIcon fontSize="small" />
-              </IconButton>
-            </Box>
-          ))}
-          <Button variant="contained" onClick={() => setAddCasaDialogOpen(true)} sx={{ minWidth: '40px', p: '6px 12px' }}>
-            <AddIcon />
-          </Button>
-        </Box>
-
-        <Box sx={{ maxWidth: '450px', margin: '0 auto', backgroundColor: '#ffffff', borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 3 }}>
-            <Avatar alt={casaAtual.nome} src={casaAtual.imagem} sx={{ width: 120, height: 120, mb: 2 }} />
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              {editingItemId === casaAtual.id ? (
-                <TextField
-                  value={editingText}
-                  onChange={(e) => setEditingText(e.target.value)}
-                  onKeyDown={handleEditKeyDown}
-                  onBlur={handleSaveEdit}
-                  autoFocus
-                  variant="standard"
+        {/* Grid de Casas com CasaCard */}
+        <Box sx={{ mb: 3 }}>
+          <Grid container spacing={2} alignItems="stretch">
+            {casas.map((casa) => (
+              <Grid item xs={12} sm={6} md={4} lg={3} key={casa.id}>
+                <CasaCard
+                  casa={{ ...casa, pessoas: casa.pessoas || [] }}
+                  isSelected={casa.id === casaSelecionadaId}
+                  onClick={() => setCasaSelecionadaId(casa.id)}
+                  onDelete={handleDeletarCasa}
                 />
-              ) : (
-                <>
-                  <Chip label={casaAtual.nome} sx={{ backgroundColor: '#e0e0e0', fontWeight: 'bold' }} />
-                  <IconButton size="small" onClick={() => handleStartEdit(casaAtual)} sx={{ ml: 1 }}>
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                </>
-              )}
-            </Box>
-          </Box>
-
-          <List sx={{ p: 0 }}>
-            {(casaAtual.pessoas || []).map(pessoa => (
-              <ListItem key={pessoa.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #eeeeee', p: '8px 16px' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <Avatar sx={{ width: 32, height: 32, mr: 2 }} alt={pessoa.nome} />
-                  {editingItemId === pessoa.id ? (
-                    <TextField
-                      value={editingText}
-                      onChange={(e) => setEditingText(e.target.value)}
-                      onKeyDown={handleEditKeyDown}
-                      onBlur={handleSaveEdit}
-                      autoFocus
-                      variant="standard"
-                    />
-                  ) : (
-                    <>
-                      <Chip
-                        label={pessoa.nome}
-                        size="small"
-                        sx={{ backgroundColor: '#673ab7', color: 'white', fontWeight: 'bold', mr: 1 }}
-                      />
-                      <Chip label={pessoa.papel} size="small" />
-                      <IconButton size="small" onClick={() => handleStartEdit(pessoa)} sx={{ ml: 1 }}>
-                        <EditIcon fontSize="inherit" />
-                      </IconButton>
-                    </>
-                  )}
-                </Box>
-                <IconButton size="small" color="error" onClick={() => handleRemoverPessoa(pessoa.id)}>
-                  <DeleteIcon />
-                </IconButton>
-              </ListItem>
+              </Grid>
             ))}
-
-            <ListItem button onClick={() => setAddPessoaDialogOpen(true)} sx={{ borderTop: '1px solid #eeeeee', p: '12px 16px' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', color: '#555' }}>
-                <AddIcon sx={{ mr: 1.5 }} />
-                <Typography variant="body1" sx={{ fontWeight: 'bold' }}>Adicionar Pessoa</Typography>
-              </Box>
-            </ListItem>
-
-            {Array.from({ length: numeroDeLinhasVazias }).map((_, index) => (
-              <ListItem
-                key={`empty-${index}`}
-                sx={{ height: '48px', backgroundColor: '#fff0f5', borderTop: '1px solid #e0e0e0' }}
-              />
-            ))}
-          </List>
+            {/* Card para adicionar nova casa */}
+            <Grid item xs={12} sm={6} md={4} lg={3}>
+              <Button variant="contained" onClick={() => setAddCasaDialogOpen(true)} sx={{ width: '100%', height: '100%' }}>
+                <AddIcon />&nbsp;Adicionar Casa
+              </Button>
+            </Grid>
+          </Grid>
         </Box>
+
+        {/* Detalhes da casa selecionada */}
+        {casaAtual && (
+          <CasaDetails
+            casa={{ ...casaAtual, pessoas: casaAtual.pessoas || [] }}
+            onEditCasaNome={handleEditarCasaNome}
+            onEditPessoaNome={handleEditarPessoaNome}
+            onDeletePessoa={handleRemoverPessoa}
+            onAddPessoaClick={() => setAddPessoaDialogOpen(true)}
+          />
+        )}
       </Box>
 
-      {/* Diálogo para adicionar pessoa */}
-      <Dialog open={addPessoaDialogOpen} onClose={() => setAddPessoaDialogOpen(false)}>
-        <DialogTitle>Adicionar Nova Pessoa</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Nome da Pessoa"
-            type="text"
-            fullWidth
-            variant="standard"
-            value={novoNomePessoa}
-            onChange={(e) => setNovoNomePessoa(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleAdicionarPessoa()}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setAddPessoaDialogOpen(false)}>Cancelar</Button>
-          <Button onClick={handleAdicionarPessoa}>Salvar</Button>
-        </DialogActions>
-      </Dialog>
+      {/* Diálogo para adicionar pessoa (componente do novo frontend) */}
+      <AddPessoaDialog
+        open={addPessoaDialogOpen}
+        onClose={() => setAddPessoaDialogOpen(false)}
+        onAdd={(nomePessoa) => handleAdicionarPessoa(nomePessoa)}
+        casaNome={casaAtual?.nome}
+      />
 
-      {/* Diálogo para adicionar casa */}
-      <Dialog open={addCasaDialogOpen} onClose={() => setAddCasaDialogOpen(false)}>
-        <DialogTitle>Adicionar Nova Casa</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Nome da Casa"
-            type="text"
-            fullWidth
-            variant="standard"
-            value={novoNomeCasa}
-            onChange={(e) => setNovoNomeCasa(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleAdicionarCasa()}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setAddCasaDialogOpen(false)}>Cancelar</Button>
-          <Button onClick={handleAdicionarCasa}>Salvar</Button>
-        </DialogActions>
-      </Dialog>
+      {/* Diálogo para adicionar casa (componente do novo frontend) */}
+      <AddCasaDialog
+        open={addCasaDialogOpen}
+        onClose={() => setAddCasaDialogOpen(false)}
+        onAdd={(nomeCasa) => handleAdicionarCasa(nomeCasa)}
+      />
     </>
   );
 }
