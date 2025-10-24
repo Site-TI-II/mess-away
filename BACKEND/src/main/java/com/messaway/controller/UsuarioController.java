@@ -2,8 +2,10 @@ package com.messaway.controller;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.messaway.dao.ContaDAO;
 import com.messaway.dao.UsuarioDAO;
 import com.messaway.db.Database;
+import com.messaway.model.Conta;
 import com.messaway.model.Usuario;
 import com.messaway.util.JsonUtil;
 
@@ -21,6 +23,7 @@ public class UsuarioController {
     public static void registerRoutes() {
         Gson gson = new Gson();
         UsuarioDAO dao = new UsuarioDAO();
+        ContaDAO contaDAO = new ContaDAO();
 
         post("/MessAway/usuarios", (req, res) -> {
             Usuario usuario = gson.fromJson(req.body(), Usuario.class);
@@ -204,94 +207,22 @@ public class UsuarioController {
                 java.util.Map<String, Object> body = gson.fromJson(req.body(), java.util.Map.class);
                 String email = (String) body.get("email");
                 String password = (String) body.get("password");
+
+                // Invalid args
                 if (email == null || password == null) {
                     res.status(400);
                     return gson.toJson(java.util.Map.of("authenticated", false, "reason", "missing_fields"));
                 }
-                Usuario u = dao.findByEmail(email);
-                if (u == null || !password.equals(u.getPassword())) {
+
+                Conta u = contaDAO.findByEmail(email);
+
+                if (u == null || !password.equals(u.getSenha())) {
                     res.status(401);
                     return gson.toJson(java.util.Map.of("authenticated", false));
                 }
-                // set cookie (simple session)
-                res.cookie("userId", String.valueOf(u.getId()));
-                // Try to find an associated conta (if any)
-                Integer idConta = null;
-                Integer casaId = null;
-                Boolean isAdmin = null;
-                try (var conn = Database.getConnection();
-                     var pst = conn.prepareStatement(
-                         "SELECT cu.id_conta, c.id_casa, c.is_admin FROM CONTA_USUARIO cu " +
-                         "JOIN CONTA c ON cu.id_conta = c.id_conta " +
-                         "WHERE cu.id_usuario = ? LIMIT 1")) {
-                    pst.setLong(1, u.getId());
-                    try (var rs = pst.executeQuery()) {
-                        if (rs.next()) {
-                            idConta = rs.getInt("id_conta");
-                            casaId = rs.getObject("id_casa") != null ? rs.getInt("id_casa") : null;
-                            isAdmin = rs.getObject("is_admin") != null ? rs.getBoolean("is_admin") : null;
-                        }
-                    }
-                } catch (Exception ex) {
-                    // ignore lookup errors, login still succeeds
-                }
-                // Fallback: owner by email (account created during register without mapping)
-                if (idConta == null) {
-                    try (var conn = Database.getConnection();
-                         var pst = conn.prepareStatement("SELECT id_conta, id_casa, is_admin FROM CONTA WHERE email = ? LIMIT 1")) {
-                        pst.setString(1, u.getEmail());
-                        try (var rs = pst.executeQuery()) {
-                            if (rs.next()) {
-                                idConta = rs.getInt("id_conta");
-                                casaId = rs.getObject("id_casa") != null ? rs.getInt("id_casa") : null;
-                                isAdmin = rs.getObject("is_admin") != null ? rs.getBoolean("is_admin") : null;
-                            }
-                        }
-                    } catch (Exception ex) {
-                        // ignore
-                    }
-                }
-
-                // Fallback #2: derivar conta pela associação do usuário a uma casa (USUARIO_CASA -> CASA.id_conta)
-                if (idConta == null) {
-                    try (var conn = Database.getConnection();
-                         var pst = conn.prepareStatement(
-                             "SELECT cs.id_conta FROM USUARIO_CASA uc " +
-                             "JOIN CASA cs ON uc.id_casa = cs.id_casa " +
-                             "WHERE uc.id_usuario = ? AND cs.id_conta IS NOT NULL LIMIT 1")) {
-                        pst.setLong(1, u.getId());
-                        try (var rs = pst.executeQuery()) {
-                            if (rs.next()) {
-                                idConta = rs.getInt("id_conta");
-                            }
-                        }
-                    } catch (Exception ex) {
-                        // ignore
-                    }
-                    // Se achou idConta, buscar is_admin
-                    if (idConta != null) {
-                        try (var conn = Database.getConnection();
-                             var pst = conn.prepareStatement("SELECT is_admin FROM CONTA WHERE id_conta = ?")) {
-                            pst.setInt(1, idConta);
-                            try (var rs = pst.executeQuery()) {
-                                if (rs.next()) {
-                                    isAdmin = rs.getObject(1) != null ? rs.getBoolean(1) : null;
-                                }
-                            }
-                        } catch (Exception ex) {
-                            // ignore
-                        }
-                    }
-                }
 
                 res.status(200);
-                java.util.Map<String, Object> result = new java.util.HashMap<>();
-                result.put("authenticated", true);
-                result.put("usuario", u);
-                if (idConta != null) result.put("idConta", idConta);
-                if (casaId != null) result.put("casaId", casaId);
-                if (isAdmin != null) result.put("isAdmin", isAdmin);
-                return gson.toJson(result);
+                return gson.toJson(u);
             } catch (SQLException e) {
                 res.status(500);
                 return gson.toJson(new Error("DB error: " + e.getMessage()));
