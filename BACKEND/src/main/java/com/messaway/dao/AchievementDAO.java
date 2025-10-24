@@ -82,6 +82,29 @@ public class AchievementDAO {
         }
     }
 
+    public List<Achievement> listCasaAchievements(long casaId) throws SQLException {
+        String sql = """
+            SELECT a.id_achievement, a.name, a.icon, a.description, 
+                   a.requirement_type, a.requirement_value, a.data_criacao
+            FROM ACHIEVEMENT a
+            INNER JOIN CASA_ACHIEVEMENT ca ON ca.id_achievement = a.id_achievement
+            WHERE ca.id_casa = ?
+            ORDER BY a.requirement_value ASC
+        """;
+        try (Connection conn = Database.connect();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setLong(1, casaId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                List<Achievement> achievements = new ArrayList<>();
+                while (rs.next()) {
+                    achievements.add(mapResultSetToAchievement(rs));
+                }
+                return achievements;
+            }
+        }
+    }
+
     public boolean unlockAchievement(long userId, long achievementId) throws SQLException {
         String sql = "INSERT INTO USUARIO_ACHIEVEMENT (id_usuario, id_achievement) VALUES (?, ?)";
         try (Connection conn = Database.connect();

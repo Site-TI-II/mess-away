@@ -51,6 +51,17 @@ public class AchievementController {
             }
         });
 
+        // Listar conquistas de uma casa
+        get("/MessAway/casas/:id/achievements", (req, res) -> {
+            try {
+                long casaId = Long.parseLong(req.params(":id"));
+                return gson.toJson(dao.listCasaAchievements(casaId));
+            } catch (SQLException e) {
+                res.status(500);
+                return gson.toJson(new Error("DB error: " + e.getMessage()));
+            }
+        });
+
         // Criar nova conquista (admin)
         post("/MessAway/achievements", (req, res) -> {
             try {

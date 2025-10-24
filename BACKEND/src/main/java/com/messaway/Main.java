@@ -4,6 +4,7 @@ import com.messaway.controller.CasaController;
 import com.messaway.controller.UsuarioCasaController;
 import com.messaway.controller.UsuarioController;
 import com.messaway.controller.AchievementController;
+import com.messaway.controller.AIController;
 import com.messaway.controller.InsightController;
 import com.messaway.controller.GastoController;
 
@@ -37,6 +38,7 @@ public class Main {
         UsuarioCasaController.registerRoutes();
         UsuarioController.registerRoutes();
         AchievementController.registerRoutes();
+        AIController.registerRoutes();
         InsightController.registerRoutes();
         com.messaway.controller.ContaController.registerRoutes();
         com.messaway.controller.TarefaController.registerRoutes();

@@ -4,23 +4,24 @@ import { useState, useEffect } from 'react'
 import { Box, Container, Typography, Grid } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useNavigate } from 'react-router-dom'
-import InsightBanner from './components/InsightBanner'
 import CasasSection from './components/CasasSection'
 import AlertsSection from './components/AlertsSection'
 import QuickActionsSection from './components/QuickActionsSection'
 import MotivationalSection from './components/MotivationalSection'
+import AchievementsSection from './components/AchievementsSection'
 import { listarCasas } from '../../api/casas'
+import { getCasaAchievements } from '../../api/achievements'
 
 /**
  * Dashboard - Página principal do sistema
  * 
- * Estrutura REORGANIZADA:
- * 1. InsightBanner - Banner destacado com insight do dia
- * 2. QuickActionsSection - Ações rápidas (botões grandes)
- * 3. CasasSection - Cards de casas (full-width)
- * 4. Grid Layout (1:3 + 2:3):
+ * Estrutura:
+ * 1. QuickActionsSection - Ações rápidas (botões grandes)
+ * 2. CasasSection - Cards de casas (full-width)
+ * 3. Grid Layout (1:3 + 2:3):
  *    - AlertsSection (4 cols - 1/3) - Lista de alertas
  *    - MotivationalSection (8 cols - 2/3) - Progresso semanal
+ * 4. AchievementsSection - Conquistas da casa
  */
 function Dashboard() {
   const theme = useTheme()
@@ -30,10 +31,10 @@ function Dashboard() {
   const [casas, setCasas] = useState([])
   const [alerts, setAlerts] = useState([])
   const [weeklyData, setWeeklyData] = useState(null)
-  const [insight, setInsight] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [achievements, setAchievements] = useState([])
+  const [totalPoints, setTotalPoints] = useState(0)
 
-  // Simular carregamento de dados (substituir por chamada à API)
   useEffect(() => {
     loadDashboardData()
   }, [])
@@ -60,17 +61,41 @@ function Dashboard() {
 
       // Carregar casas reais do banco
       const casasResponse = await listarCasas(idConta)
-      const casasComTarefas = casasResponse.data.map(casa => ({
-        id: casa.id,
-        nome: casa.nome,
-        imagem: casa.imagem,
-        // Simular contagem de tarefas (depois pode vir do backend)
-        tarefasPendentes: Math.floor(Math.random() * 15),
-        tarefasConcluidas: Math.floor(Math.random() * 20) + 10,
-        totalTarefas: 30
-      }))
+      if (casasResponse?.data) {
+        const casasComTarefas = casasResponse.data.map(casa => ({
+          id: casa.id,
+          nome: casa.nome,
+          imagem: casa.imagem,
+          // Simular contagem de tarefas (depois pode vir do backend)
+          tarefasPendentes: Math.floor(Math.random() * 15),
+          tarefasConcluidas: Math.floor(Math.random() * 20) + 10,
+          totalTarefas: 30,
+          pontos: casa.pontos || 0
+        }))
 
-      setCasas(casasComTarefas)
+        setCasas(casasComTarefas)
+
+        // Carregar points e achievements da primeira casa
+        if (casasResponse.data.length > 0) {
+          const currentCasa = casasResponse.data[0]
+          setTotalPoints(currentCasa.pontos || 0)
+          
+          // Carregar achievements da casa
+          try {
+            const achievementsResponse = await getCasaAchievements(currentCasa.id)
+            if (Array.isArray(achievementsResponse?.data)) {
+              setAchievements(achievementsResponse.data)
+            } else if (Array.isArray(achievementsResponse)) {
+              setAchievements(achievementsResponse)
+            } else {
+              setAchievements([])
+            }
+          } catch (achieveError) {
+            console.error('Erro ao carregar conquistas da casa:', achieveError)
+            setAchievements([])
+          }
+        }
+      }
     } catch (error) {
       console.error('Erro ao carregar dados do dashboard:', error)
     } finally {
@@ -111,17 +136,14 @@ function Dashboard() {
           </Typography>
         </Box>
 
-        {/* 1. Insight Banner (destaque máximo) */}
-        <InsightBanner insight={insight} />
-
-        {/* 2. Ações Rápidas (destaque alto) */}
+        {/* 1. Ações Rápidas */}
         <QuickActionsSection />
 
-        {/* 3. Casas Section (full-width) */}
+        {/* 2. Casas Section (full-width) */}
         <CasasSection casas={casas} />
 
-        {/* 4. Grid REORGANIZADO: Alertas (1/3) + Progresso Semanal (2/3) */}
-        <Grid container spacing={3}>
+        {/* 3. Grid: Alertas (1/3) + Progresso Semanal (2/3) */}
+        <Grid container spacing={3} sx={{ mb: 3 }}>
           {/* Alertas - 4 colunas (1/3) */}
           <Grid item xs={12} md={4}>
             <AlertsSection alerts={alerts} />
@@ -130,6 +152,16 @@ function Dashboard() {
           {/* Progresso Semanal - 8 colunas (2/3) */}
           <Grid item xs={12} md={8}>
             <MotivationalSection weeklyData={weeklyData} />
+          </Grid>
+        </Grid>
+
+        {/* 4. Achievements Section */}
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <AchievementsSection 
+              achievements={achievements} 
+              totalPoints={totalPoints}
+            />
           </Grid>
         </Grid>
       </Container>

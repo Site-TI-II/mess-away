@@ -10,6 +10,10 @@ export const getUserAchievements = (userId) =>
   axios.get(`${API_URL}/usuarios/${userId}/achievements`)
     .then(response => response.data);
 
+export const getCasaAchievements = (casaId) =>
+  axios.get(`${API_URL}/casas/${casaId}/achievements`)
+    .then(response => response.data);
+
 export const unlockAchievement = (userId, achievementId) =>
   axios.post(`${API_URL}/usuarios/${userId}/achievements/${achievementId}/unlock`)
     .then(response => response.data);
