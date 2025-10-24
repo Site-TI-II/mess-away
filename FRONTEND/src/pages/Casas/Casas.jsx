@@ -287,12 +287,6 @@ function Casas() {
             onEditPessoaNome={handleEditarPessoaNome}
             onDeletePessoa={handleRemoverPessoa}
             onAddPessoaClick={() => setAddPessoaDialogOpen(true)}
-            // botão extra para cadastrar morador (usuário real) e associar à casa
-            extraActions={
-              <Button variant="outlined" onClick={() => setAddMoradorDialogOpen(true)} sx={{ ml: 1 }}>
-                Adicionar morador à casa
-              </Button>
-            }
           />
         )}
       </Box>

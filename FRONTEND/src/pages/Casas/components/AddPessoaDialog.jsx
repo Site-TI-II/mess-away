@@ -79,7 +79,7 @@ function AddPessoaDialog({ open, onClose, onAdd, casaNome }) {
             </Typography>
             {casaNome && (
               <Typography variant="caption" color="text.secondary">
-                Em: {casaNome}
+                Casa: {casaNome}
               </Typography>
             )}
           </Box>
