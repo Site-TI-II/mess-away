@@ -33,7 +33,7 @@ public class UsuarioController {
                 return gson.toJson(created);
             } catch (SQLException e) {
                 res.status(500);
-                return gson.toJson(new Error("DB error: " + e.getMessage()));
+                return gson.toJson(java.util.Map.of("error", "DB error: " + e.getMessage()));
             }
         });
 
@@ -48,7 +48,7 @@ public class UsuarioController {
                 return gson.toJson(u);
             } catch (SQLException e) {
                 res.status(500);
-                return gson.toJson(new Error("DB error: " + e.getMessage()));
+                return gson.toJson(java.util.Map.of("error", "DB error: " + e.getMessage()));
             }
         });
 
@@ -58,7 +58,7 @@ public class UsuarioController {
                 return gson.toJson(users);
             } catch (SQLException e) {
                 res.status(500);
-                return gson.toJson(new Error("DB error: " + e.getMessage()));
+                return gson.toJson(java.util.Map.of("error", "DB error: " + e.getMessage()));
             }
         });
 
@@ -78,7 +78,7 @@ public class UsuarioController {
                 }
             } catch (SQLException e) {
                 res.status(500);
-                return gson.toJson(new Error("DB error: " + e.getMessage()));
+                return gson.toJson(java.util.Map.of("error", "DB error: " + e.getMessage()));
             }
         });
 
@@ -194,7 +194,7 @@ public class UsuarioController {
             } catch (SQLException e) {
                 e.printStackTrace();
                 res.status(500);
-                return gson.toJson(new Error("DB error: " + e.getMessage()));
+                return gson.toJson(java.util.Map.of("error", "DB error: " + e.getMessage()));
             }
         };
         // Support both /MessAway and /api paths (backward compatibility)
@@ -225,7 +225,7 @@ public class UsuarioController {
                 return gson.toJson(u);
             } catch (SQLException e) {
                 res.status(500);
-                return gson.toJson(new Error("DB error: " + e.getMessage()));
+                return gson.toJson(java.util.Map.of("error", e.getMessage()));
             }
         };
         // Support both /MessAway and /api paths
@@ -257,7 +257,7 @@ public class UsuarioController {
                 return gson.toJson(java.util.Map.of("authenticated", true, "usuario", u));
             } catch (SQLException e) {
                 res.status(500);
-                return gson.toJson(new Error("DB error: " + e.getMessage()));
+                return gson.toJson(java.util.Map.of("error", "DB error: " + e.getMessage()));
             }
         });
     }

@@ -1,54 +1,22 @@
-// src/api/tarefas.js
-import axios from 'axios'
+import axios from 'axios';
+import { API_URL } from './config';
 
-const API_URL = 'http://localhost:4567/api'
+// Rotas corretas: /api/casas/:id/tarefas
+const getTarefasUrl = (idCasa) => `http://localhost:4567/api/casas/${idCasa}/tarefas`;
 
-export const listarTarefas = async (idCasa) => {
-  try {
-    const response = await axios.get(`${API_URL}/casas/${idCasa}/tarefas`)
-    return response.data
-  } catch (error) {
-    console.error('Erro ao listar tarefas:', error?.response?.status, error?.response?.data || error?.message)
-    throw error
-  }
-}
+export const listarTarefas = (idCasa) => axios.get(getTarefasUrl(idCasa));
 
-export const criarTarefa = async (tarefa) => {
-  try {
-    const response = await axios.post(`${API_URL}/tarefas`, tarefa)
-    return response.data
-  } catch (error) {
-    console.error('Erro ao criar tarefa:', error)
-    throw error
-  }
-}
+export const criarTarefa = (idCasa, tarefa) => 
+  axios.post('http://localhost:4567/api/tarefas', { ...tarefa, idCasa });
 
-export const atualizarTarefa = async (idTarefa, tarefa) => {
-  try {
-    const response = await axios.put(`${API_URL}/tarefas/${idTarefa}`, tarefa)
-    return response.data
-  } catch (error) {
-    console.error('Erro ao atualizar tarefa:', error)
-    throw error
-  }
-}
+export const atualizarTarefa = (idCasa, idTarefa, tarefa) => 
+  axios.put(`http://localhost:4567/api/tarefas/${idTarefa}`, tarefa);
 
-export const removerTarefa = async (idTarefa) => {
-  try {
-    const response = await axios.delete(`${API_URL}/tarefas/${idTarefa}`)
-    return response.data
-  } catch (error) {
-    console.error('Erro ao remover tarefa:', error)
-    throw error
-  }
-}
+export const deletarTarefa = (idCasa, idTarefa) => 
+  axios.delete(`http://localhost:4567/api/tarefas/${idTarefa}`);
 
-export const concluirTarefa = async (idTarefa) => {
-  try {
-    const response = await axios.put(`${API_URL}/tarefas/${idTarefa}/concluir`)
-    return response.data
-  } catch (error) {
-    console.error('Erro ao concluir tarefa:', error)
-    throw error
-  }
-}
+export const concluirTarefa = (idCasa, idTarefa) => 
+  axios.put(`http://localhost:4567/api/tarefas/${idTarefa}/concluir`);
+
+// Alias para compatibilidade
+export const removerTarefa = deletarTarefa;

@@ -82,7 +82,7 @@ function Tarefas() {
 
   const [rTarefas, rPessoas] = results
 
-      if (rTarefas.status === 'fulfilled') setLista(Array.isArray(rTarefas.value?.data) ? rTarefas.value.data : (Array.isArray(rTarefas.value) ? rTarefas.value : []))
+      if (rTarefas.status === 'fulfilled') setLista(rTarefas.value)
       else {
         console.warn('Falha ao carregar tarefas:', rTarefas.reason)
         setLista([])
@@ -165,7 +165,7 @@ function Tarefas() {
       
       // Recarregar lista de tarefas
       const tarefasAtualizadas = await listarTarefas(casaAtual.id)
-      setLista(Array.isArray(tarefasAtualizadas?.data) ? tarefasAtualizadas.data : (Array.isArray(tarefasAtualizadas) ? tarefasAtualizadas : []))
+      setLista(tarefasAtualizadas)
 
       // Limpar formulário
       setTarefa('')
@@ -185,7 +185,7 @@ function Tarefas() {
       
       // Atualizar lista
       const tarefasAtualizadas = await listarTarefas(casaAtual.id)
-      setLista(Array.isArray(tarefasAtualizadas?.data) ? tarefasAtualizadas.data : (Array.isArray(tarefasAtualizadas) ? tarefasAtualizadas : []))
+      setLista(tarefasAtualizadas)
     } catch (err) {
       console.error('Erro ao remover tarefa:', err)
       setError('Erro ao remover tarefa. Tente novamente.')
@@ -198,7 +198,7 @@ function Tarefas() {
       
       // Atualizar lista
       const tarefasAtualizadas = await listarTarefas(casaAtual.id)
-      setLista(Array.isArray(tarefasAtualizadas?.data) ? tarefasAtualizadas.data : (Array.isArray(tarefasAtualizadas) ? tarefasAtualizadas : []))
+      setLista(tarefasAtualizadas)
     } catch (err) {
       console.error('Erro ao concluir tarefa:', err)
       setError('Erro ao concluir tarefa. Tente novamente.')

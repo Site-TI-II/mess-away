@@ -24,7 +24,7 @@ public class InsightController {
                 return gson.toJson(dao.listAll());
             } catch (SQLException e) {
                 res.status(500);
-                return gson.toJson(new Error("DB error: " + e.getMessage()));
+                return gson.toJson(java.util.Map.of("error", "DB error: " + e.getMessage()));
             }
         });
         // alias /api
@@ -37,7 +37,7 @@ public class InsightController {
                 return gson.toJson(dao.listAll());
             } catch (SQLException e) {
                 res.status(500);
-                return gson.toJson(new Error("DB error: " + e.getMessage()));
+                return gson.toJson(java.util.Map.of("error", "DB error: " + e.getMessage()));
             }
         });
 
@@ -53,7 +53,7 @@ public class InsightController {
                 return gson.toJson(insight);
             } catch (SQLException e) {
                 res.status(500);
-                return gson.toJson(new Error("DB error: " + e.getMessage()));
+                return gson.toJson(java.util.Map.of("error", "DB error: " + e.getMessage()));
             }
         });
         // alias /api
@@ -68,7 +68,7 @@ public class InsightController {
                 return gson.toJson(insight);
             } catch (SQLException e) {
                 res.status(500);
-                return gson.toJson(new Error("DB error: " + e.getMessage()));
+                return gson.toJson(java.util.Map.of("error", "DB error: " + e.getMessage()));
             }
         });
 
@@ -81,7 +81,7 @@ public class InsightController {
                 return gson.toJson(created);
             } catch (SQLException e) {
                 res.status(500);
-                return gson.toJson(new Error("DB error: " + e.getMessage()));
+                return gson.toJson(java.util.Map.of("error", "DB error: " + e.getMessage()));
             }
         });
         // alias /api
@@ -93,7 +93,7 @@ public class InsightController {
                 return gson.toJson(created);
             } catch (SQLException e) {
                 res.status(500);
-                return gson.toJson(new Error("DB error: " + e.getMessage()));
+                return gson.toJson(java.util.Map.of("error", "DB error: " + e.getMessage()));
             }
         });
     }

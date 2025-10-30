@@ -4,7 +4,7 @@ import { Box, Paper, Typography, Chip, Divider, List } from '@mui/material'
 import { Assignment as AssignmentIcon } from '@mui/icons-material'
 import TaskItem from './TaskItem'
 
-function TaskList({ lista, onComplete, onDelete }) {
+function TaskList({ lista = [], onComplete, onDelete }) {
   return (
     <Paper
       elevation={0}
