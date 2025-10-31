@@ -63,8 +63,8 @@ public class TarefaController {
                             JOIN COMODO c ON t.id_comodo = c.id_comodo
                             LEFT JOIN USUARIO u ON t.id_usuario_responsavel = u.id_usuario
                             JOIN CATEGORIA cat ON t.id_categoria = cat.id_categoria
-                            WHERE t.id_casa = ? AND t.ativo = false
-                            ORDER BY t.data_criacao DESC
+                            WHERE t.id_casa = ?
+                            ORDER BY t.ativo ASC, t.data_criacao DESC
                         """;
 
                 try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -73,7 +73,7 @@ public class TarefaController {
 
                     while (rs.next()) {
                         Map<String, Object> tarefa = new HashMap<>();
-                        tarefa.put("id", rs.getLong("idTarefa"));  // ✅ Frontend espera "id"
+                        tarefa.put("id", rs.getLong("idTarefa"));
                         tarefa.put("nome", rs.getString("nome"));
                         tarefa.put("descricao", rs.getString("descricao"));
                         tarefa.put("dataCriacao", rs.getTimestamp("dataCriacao"));
