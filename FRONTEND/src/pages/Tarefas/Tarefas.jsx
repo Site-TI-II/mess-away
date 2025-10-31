@@ -14,31 +14,21 @@ import { listUsuariosByCasa, listarCasas, addUsuarioToCasa } from '../../api/cas
 
 /**
  * Tarefas - Sistema de gerenciamento de tarefas domésticas
- *
- * Funcionalidades:
- * - Adicionar tarefas com responsável, prazo, cômodo e categoria
- * - Marcar tarefas como concluídas
- * - Filtro por prazo (Diárias)
- * - Estatísticas por responsável
- * - Design moderno com glass morphism
- * - Integração completa com backend e database
  */
 function Tarefas() {
   const theme = useTheme()
-  
+
   // Estado do formulário
   const [tarefa, setTarefa] = useState('')
   const [responsavel, setResponsavel] = useState('')
   const [prazo, setPrazo] = useState('')
   const [diaria, setDiaria] = useState(false)
-  // (sem inputs de cômodo e categoria na UI — usaremos defaults)
-  
+
   // Dados da API
   const [lista, setLista] = useState([])
   const [pessoas, setPessoas] = useState([])
-  // Não dependemos mais de comodos/categorias
   const [casaAtual, setCasaAtual] = useState(null)
-  
+
   // Estado de carregamento e erros
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -74,16 +64,18 @@ function Tarefas() {
       const casa = casas[0]
       setCasaAtual(casa)
 
-      // 3) Dados da casa em paralelo com tolerância a falhas
+      // 3) Dados da casa em paralelo
       let results = await Promise.allSettled([
         listarTarefas(casa.id),
         listUsuariosByCasa(casa.id)
       ])
 
-  const [rTarefas, rPessoas] = results
+      const [rTarefas, rPessoas] = results
 
-      if (rTarefas.status === 'fulfilled') setLista(Array.isArray(rTarefas.value?.data) ? rTarefas.value.data : (Array.isArray(rTarefas.value) ? rTarefas.value : []))
-      else {
+      if (rTarefas.status === 'fulfilled') {
+        const tarefasData = rTarefas.value?.data || rTarefas.value || []
+        setLista(Array.isArray(tarefasData) ? tarefasData : [])
+      } else {
         console.warn('Falha ao carregar tarefas:', rTarefas.reason)
         setLista([])
       }
@@ -91,7 +83,7 @@ function Tarefas() {
       if (rPessoas.status === 'fulfilled') {
         let pessoasVal = rPessoas.value || []
 
-        // Dedupe por idUsuario para evitar duplicados ocasionais
+        // Dedupe por idUsuario
         if (Array.isArray(pessoasVal)) {
           const seen = new Set()
           pessoasVal = pessoasVal.filter(p => {
@@ -101,17 +93,15 @@ function Tarefas() {
             seen.add(id)
             return true
           })
-          // Ordena por nome para consistência
           pessoasVal.sort((a, b) => (a?.nome || '').localeCompare(b?.nome || ''))
         }
-        
-        // Se não houver pessoas na casa, tente associar o usuário atual automaticamente
+
+        // Se não houver pessoas, associar usuário atual
         if (pessoasVal.length === 0) {
           const idUsuarioAtual = user.idUsuario || user.id || user.id_usuario
           if (idUsuarioAtual) {
             try {
               await addUsuarioToCasa(casa.id, { idUsuario: idUsuarioAtual, permissao: 'Membro' })
-              // Recarrega pessoas
               pessoasVal = await listUsuariosByCasa(casa.id)
               if (Array.isArray(pessoasVal)) {
                 const seen2 = new Set()
@@ -135,7 +125,6 @@ function Tarefas() {
         setPessoas([])
       }
 
-      // Se tudo falhar, mostre erro geral
       if (rTarefas.status === 'rejected' && rPessoas.status === 'rejected') {
         setError('Erro ao carregar dados. Verifique se o servidor backend está em execução.')
       }
@@ -148,24 +137,33 @@ function Tarefas() {
   }
 
   const adicionarTarefa = async () => {
-    if (!tarefa.trim() || !responsavel || !prazo) return
+    if (!tarefa.trim() || !responsavel || !prazo) {
+      console.warn('⚠️ Campos obrigatórios não preenchidos')
+      return
+    }
+
+    if (!casaAtual?.id) {
+      console.error('❌ Casa atual não está definida!')
+      setError('Erro: Casa não encontrada. Recarregue a página.')
+      return
+    }
 
     try {
       const novaTarefa = {
         nome: tarefa,
         descricao: '',
         idUsuario: responsavel,
-        idCasa: casaAtual?.id,
-        dataEstimada: prazo, // formato ISO string
-        // convencao: frequencia = 1 para diarias; 0 para tarefas normais
+        idCasa: casaAtual.id,
+        dataEstimada: prazo,
         frequencia: diaria ? 1 : 0
       }
 
       await criarTarefa(novaTarefa)
-      
+
       // Recarregar lista de tarefas
       const tarefasAtualizadas = await listarTarefas(casaAtual.id)
-      setLista(Array.isArray(tarefasAtualizadas?.data) ? tarefasAtualizadas.data : (Array.isArray(tarefasAtualizadas) ? tarefasAtualizadas : []))
+      const tarefasData = tarefasAtualizadas?.data || tarefasAtualizadas || []
+      setLista(Array.isArray(tarefasData) ? tarefasData : [])
 
       // Limpar formulário
       setTarefa('')
@@ -174,18 +172,19 @@ function Tarefas() {
       setDiaria(false)
 
     } catch (err) {
-      console.error('Erro ao adicionar tarefa:', err)
+      console.error('❌ Erro ao adicionar tarefa:', err)
       setError('Erro ao adicionar tarefa. Tente novamente.')
     }
   }
 
   const removerTarefaHandler = async (idTarefa) => {
+    
     try {
-      await removerTarefa(idTarefa)
-      
-      // Atualizar lista
+      await removerTarefa(casaAtual.id, idTarefa)
+
       const tarefasAtualizadas = await listarTarefas(casaAtual.id)
-      setLista(Array.isArray(tarefasAtualizadas?.data) ? tarefasAtualizadas.data : (Array.isArray(tarefasAtualizadas) ? tarefasAtualizadas : []))
+      const tarefasData = tarefasAtualizadas?.data || tarefasAtualizadas || []
+      setLista(Array.isArray(tarefasData) ? tarefasData : [])
     } catch (err) {
       console.error('Erro ao remover tarefa:', err)
       setError('Erro ao remover tarefa. Tente novamente.')
@@ -193,12 +192,13 @@ function Tarefas() {
   }
 
   const marcarComoConcluida = async (idTarefa) => {
+    
     try {
-      await concluirTarefa(idTarefa)
-      
-      // Atualizar lista
+      await concluirTarefa(casaAtual.id, idTarefa)
+
       const tarefasAtualizadas = await listarTarefas(casaAtual.id)
-      setLista(Array.isArray(tarefasAtualizadas?.data) ? tarefasAtualizadas.data : (Array.isArray(tarefasAtualizadas) ? tarefasAtualizadas : []))
+      const tarefasData = tarefasAtualizadas?.data || tarefasAtualizadas || []
+      setLista(Array.isArray(tarefasData) ? tarefasData : [])
     } catch (err) {
       console.error('Erro ao concluir tarefa:', err)
       setError('Erro ao concluir tarefa. Tente novamente.')
@@ -269,7 +269,7 @@ function Tarefas() {
         <Box
           sx={{
             display: 'grid',
-            gridTemplateColumns: { 
+            gridTemplateColumns: {
               xs: '1fr',
               md: '2fr 1fr'
             },

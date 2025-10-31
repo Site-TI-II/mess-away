@@ -1,333 +1,356 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Button,
-  List,
-  ListItem,
-  Typography,
-  IconButton,
-  Avatar,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField
-} from '@mui/material';
-import Grid from '@mui/material/Grid';
-import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import CloseIcon from '@mui/icons-material/Close';
-import { useLocation } from 'react-router-dom';
+// src/pages/Casas/Casas.jsx
 
-import { listarCasas, criarCasa, deletarCasa, listUsuariosByCasa } from '../../api/casas';
-import { listUsuariosByConta, addUsuarioToConta, deleteUsuarioFromConta } from '../../api/contas';
-// Componentes do novo frontend (pós-merge)
-import AddCasaDialog from './components/AddCasaDialog';
-import AddPessoaDialog from './components/AddPessoaDialog';
-import AddMoradorCasaDialog from './components/AddMoradorCasaDialog';
-import CasaCard from './components/CasaCard';
-import CasaDetails from './components/CasaDetails';
+import { useState, useEffect } from 'react'
+import { Box, Container, Typography, Grid, Button, Paper, CircularProgress } from '@mui/material'
+import { Add as AddIcon } from '@mui/icons-material'
+import { useTheme } from '@mui/material/styles'
+import { useLocation } from 'react-router-dom'
+import { listarCasas, criarCasa, deletarCasa, listUsuariosByCasa, addMoradorToCasa } from '../../api/casas'
+// Componentes
+import AddCasaDialog from './components/AddCasaDialog'
+import AddPessoaDialog from './components/AddPessoaDialog'
+import CasaCard from './components/CasaCard'
+import CasaDetails from './components/CasaDetails'
 
 function Casas() {
-  const location = useLocation();
-  const [casas, setCasas] = useState([]);
-  const [casaSelecionadaId, setCasaSelecionadaId] = useState(null);
-  const [addPessoaDialogOpen, setAddPessoaDialogOpen] = useState(false);
-  const [addCasaDialogOpen, setAddCasaDialogOpen] = useState(false);
-  const [addMoradorDialogOpen, setAddMoradorDialogOpen] = useState(false);
-  const [novoNomePessoa, setNovoNomePessoa] = useState('');
-  const [novoNomeCasa, setNovoNomeCasa] = useState('');
-  const [editingItemId, setEditingItemId] = useState(null);
-  const [editingText, setEditingText] = useState('');
+  const theme = useTheme()
+  const location = useLocation()
+  
+  // Estados
+  const [casas, setCasas] = useState([])
+  const [casaSelecionadaId, setCasaSelecionadaId] = useState(null)
+  const [addPessoaDialogOpen, setAddPessoaDialogOpen] = useState(false)
+  const [addCasaDialogOpen, setAddCasaDialogOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
 
-  const casaAtual = casas.find(c => c.id === casaSelecionadaId);
+  const casaAtual = casas.find(c => c.id === casaSelecionadaId)
 
+  // Carregar casas
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
-    listarCasas(user?.idConta).then(async res => {
-      const casasBase = (res.data || []).map(c => ({ ...c, pessoas: [] }));
-      // Para cada casa, carrega os usuários vinculados (USUARIO_CASA)
+    loadCasas()
+  }, [])
+
+  const loadCasas = async () => {
+    setLoading(true)
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || 'null')
+      const res = await listarCasas(user?.idConta)
+      const casasBase = (res.data || []).map(c => ({ ...c, pessoas: [] }))
+      
+      // Carregar pessoas de cada casa
       const carregadas = await Promise.all(
         casasBase.map(async (c) => {
           try {
-            const pessoas = await listUsuariosByCasa(c.id);
-            // normaliza e ordena
-            const norm = (pessoas || []).map(p => ({ id: p.idUsuario, nome: p.nome, papel: p.permissao || 'Membro' }))
-              .filter(p => !!p.id);
-            norm.sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
-            return { ...c, pessoas: norm };
+            const pessoas = await listUsuariosByCasa(c.id)
+            const norm = (pessoas || [])
+              .map(p => ({ id: p.idUsuario, nome: p.nome, papel: p.permissao || 'Membro' }))
+              .filter(p => !!p.id)
+              .sort((a, b) => (a.nome || '').localeCompare(b.nome || ''))
+            return { ...c, pessoas: norm }
           } catch {
-            return c;
+            return c
           }
         })
-      );
-      setCasas(carregadas);
+      )
+      
+      setCasas(carregadas)
 
-      // Se vier do Dashboard com uma casa selecionada, use ela
-      const casaIdFromDashboard = location.state?.casaSelecionadaId;
+      // Selecionar casa
+      const casaIdFromDashboard = location.state?.casaSelecionadaId
       if (casaIdFromDashboard && carregadas.some(c => c.id === casaIdFromDashboard)) {
-        setCasaSelecionadaId(casaIdFromDashboard);
+        setCasaSelecionadaId(casaIdFromDashboard)
       } else if (carregadas.length > 0) {
-        setCasaSelecionadaId(carregadas[0].id);
-      } else {
-        setCasaSelecionadaId(null);
+        setCasaSelecionadaId(carregadas[0].id)
       }
-    });
-    // Observação: removido o preenchimento por Conta (listUsuariosByConta) para refletir corretamente moradores da casa
-  }, []);
+    } catch (error) {
+      console.error('Erro ao carregar casas:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
+  // Auto-selecionar primeira casa
   useEffect(() => {
     if (!casas.find(c => c.id === casaSelecionadaId) && casas.length > 0) {
-      setCasaSelecionadaId(casas[0].id);
+      setCasaSelecionadaId(casas[0].id)
     } else if (casas.length === 0) {
-      setCasaSelecionadaId(null);
+      setCasaSelecionadaId(null)
     }
-  }, [casas, casaSelecionadaId]);
+  }, [casas, casaSelecionadaId])
 
-  // Aceita nome opcional vindo do AddCasaDialog
-  const handleAdicionarCasa = (nomeOpcional) => {
-    const nome = (nomeOpcional ?? novoNomeCasa).trim();
-    if (nome === '') return;
-    const novaCasa = { nome };
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
-    const idConta = user?.idConta;
-    criarCasa(novaCasa, idConta)
-      .then((response) => {
-        console.log('Casa criada com sucesso:', response.data);
-        return listarCasas(idConta);
-      })
-      .then(res => {
-        console.log('Casas atualizadas:', res.data);
-        setCasas(res.data);
-        setNovoNomeCasa('');
-        setAddCasaDialogOpen(false);
-        // Recarrega a página imediatamente para refletir no header (Tarefas/Dashboard)
-        setTimeout(() => {
-          window.location.reload();
-        }, 50);
-      })
-      .catch(error => {
-        console.error('Erro ao criar casa:', error);
-        alert(error.response?.data?.message || 'Erro ao criar casa. Por favor, tente novamente.');
-      });
-  };
-
-  const handleDeletarCasa = (casaId) => {
-    if (window.confirm("Tem certeza que deseja deletar esta casa?")) {
-      const user = JSON.parse(localStorage.getItem('user') || 'null');
-      deletarCasa(casaId)
-        .then(() => {
-          // Recarrega a página para atualizar o header e a listagem
-          window.location.reload();
-        })
-        .catch((err) => {
-          console.error('Erro ao deletar casa:', err);
-          // Fallback: tentar atualizar a lista sem reload
-          listarCasas(user?.idConta).then(res => setCasas(res.data));
-        });
+  // Handlers
+  const handleAdicionarCasa = async (nome) => {
+    if (!nome.trim()) return
+    
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || 'null')
+      await criarCasa({ nome }, user?.idConta)
+      setAddCasaDialogOpen(false)
+      await loadCasas()
+    } catch (error) {
+      console.error('Erro ao criar casa:', error)
+      alert('Erro ao criar casa. Tente novamente.')
     }
-  };
+  }
 
-  // Aceita nome opcional vindo do AddPessoaDialog
-  const handleAdicionarPessoa = (nomeOpcional) => {
-    const nome = (nomeOpcional ?? novoNomePessoa).trim();
-    if (nome === '') return;
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
-    if (!user || !user.idConta) {
-      alert('Conta não encontrada. Faça login ou crie uma conta primeiro.');
-      return;
+  const handleDeletarCasa = async (casaId) => {
+    if (!window.confirm("Tem certeza que deseja deletar esta casa?")) return
+    
+    try {
+      await deletarCasa(casaId)
+      await loadCasas()
+    } catch (error) {
+      console.error('Erro ao deletar casa:', error)
+      alert('Erro ao deletar casa.')
     }
-    // call backend to create profile (no idUsuario)
-    addUsuarioToConta(user.idConta, { apelido: nome, cor: '#673ab7', permissao: 'Membro' }).then((res) => {
-      // res is created ContaUsuario
+  }
+
+  const handleAdicionarPessoa = async (nome) => {
+  if (!nome.trim()) return
+  
+  try {
+    if (!casaAtual?.id) {
+      alert('Selecione uma casa primeiro')
+      return
+    }
+
+    // Gerar email temporário baseado no nome
+    const emailTemp = `${nome.toLowerCase().replace(/\s+/g, '.')}@messaway.temp`
+    
+    console.log('🔧 Criando morador:', { nome, emailTemp, casaId: casaAtual.id })
+    
+    // Criar usuário REAL no banco + associar à casa
+    const resultado = await addMoradorToCasa(casaAtual.id, {
+      nome: nome.trim(),
+      email: emailTemp,
+      senha: '123456',
+      permissao: 'Membro'
+    })
+    
+    console.log('✅ Morador criado:', resultado)
+    
+    // Recarregar lista de casas e pessoas
+    await loadCasas()
+    setAddPessoaDialogOpen(false)
+  } catch (error) {
+    console.error('❌ Erro ao adicionar pessoa:', error)
+    const msg = error?.response?.data?.error || error?.response?.data?.message || 'Erro ao adicionar pessoa.'
+    alert(msg)
+  }
+}
+
+  const handleRemoverPessoa = async (pessoaId) => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || 'null')
+      await deleteUsuarioFromConta(user.idConta, pessoaId)
+      
       const novasCasas = casas.map(casa => {
-        if (casa.id === casaSelecionadaId || casaSelecionadaId == null) {
-          const novaPessoa = { id: res.id, nome: res.apelido || nome, papel: res.permissao || 'Membro', cor: res.cor };
-          const existentes = casa.pessoas || [];
-          const dedup = [...existentes, novaPessoa].reduce((acc, p) => {
-            if (!acc.some(x => x.id === p.id)) acc.push(p);
-            return acc;
-          }, []);
-          return { ...casa, pessoas: dedup };
+        if (casa.id === casaSelecionadaId) {
+          const pessoas = (casa.pessoas || []).filter(p => p.id !== pessoaId)
+          return { ...casa, pessoas }
         }
-        return casa;
-      });
-      setCasas(novasCasas);
-      setNovoNomePessoa('');
-      setAddPessoaDialogOpen(false);
-    }).catch(() => {
-      alert('Erro ao adicionar pessoa');
-    });
-  };
-
-  const handleRemoverPessoa = (pessoaId) => {
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
-    if (!user || !user.idConta) {
-      alert('Conta não encontrada. Faça login novamente.');
-      return;
-    }
-
-    // Remove no backend (CONTA_USUARIO) e depois atualiza estado local
-    deleteUsuarioFromConta(user.idConta, pessoaId)
-      .then(() => {
-        const novasCasas = casas.map(casa => {
-          if (casa.id === casaSelecionadaId) {
-            const novasPessoas = (casa.pessoas || []).filter(p => p.id !== pessoaId);
-            return { ...casa, pessoas: novasPessoas };
-          }
-          return casa;
-        });
-        setCasas(novasCasas);
+        return casa
       })
-      .catch((err) => {
-        console.error('Erro ao remover pessoa da conta:', err);
-        alert(err.response?.data || 'Erro ao remover pessoa.');
-      });
-  };
+      
+      setCasas(novasCasas)
+    } catch (error) {
+      console.error('Erro ao remover pessoa:', error)
+      alert('Erro ao remover pessoa.')
+    }
+  }
 
-  // Editar nome da casa (somente client-side por enquanto)
   const handleEditarCasaNome = (casaId, novoNome) => {
-    setCasas(prev => prev.map(c => c.id === casaId ? { ...c, nome: novoNome } : c));
-  };
+    setCasas(prev => prev.map(c => 
+      c.id === casaId ? { ...c, nome: novoNome } : c
+    ))
+  }
 
-  // Editar nome da pessoa (somente client-side por enquanto)
   const handleEditarPessoaNome = (pessoaId, novoNome) => {
     setCasas(prev => prev.map(c => {
-      if (c.id !== casaSelecionadaId) return c;
-      const pessoas = (c.pessoas || []).map(p => p.id === pessoaId ? { ...p, nome: novoNome } : p);
-      return { ...c, pessoas };
-    }));
-  };
+      if (c.id !== casaSelecionadaId) return c
+      const pessoas = (c.pessoas || []).map(p => 
+        p.id === pessoaId ? { ...p, nome: novoNome } : p
+      )
+      return { ...c, pessoas }
+    }))
+  }
 
-  const handleStartEdit = (item) => {
-    setEditingItemId(item.id);
-    setEditingText(item.nome);
-  };
-
-  const handleCancelEdit = () => {
-    setEditingItemId(null);
-    setEditingText('');
-  };
-
-  const handleSaveEdit = () => {
-    if (editingText.trim() === '') return handleCancelEdit();
-    const novasCasas = casas.map(casa => {
-      if (casa.id === editingItemId) {
-        return { ...casa, nome: editingText };
-      }
-      if (casa.id === casaSelecionadaId) {
-        return {
-          ...casa,
-          pessoas: (casa.pessoas || []).map(pessoa =>
-            pessoa.id === editingItemId ? { ...pessoa, nome: editingText } : pessoa
-          )
-        };
-      }
-      return casa;
-    });
-    setCasas(novasCasas);
-    handleCancelEdit();
-  };
-
-  const handleEditKeyDown = (event) => {
-    if (event.key === 'Enter') handleSaveEdit();
-    if (event.key === 'Escape') handleCancelEdit();
-  };
-
-  if (!casaAtual) {
+  // Loading
+  if (loading) {
     return (
-      <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Typography variant="h5">Nenhuma casa cadastrada.</Typography>
-        <Button variant="contained" onClick={() => setAddCasaDialogOpen(true)} sx={{ mt: 2 }}>
-          Adicionar Primeira Casa
-        </Button>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: 'calc(100vh - 80px)' 
+      }}>
+        <CircularProgress />
+      </Box>
+    )
+  }
+
+  // Estado vazio
+  if (casas.length === 0) {
+    return (
+      <Box
+        sx={{
+          minHeight: 'calc(100vh - 80px)',
+          py: 4,
+          background: `linear-gradient(135deg, ${theme.palette.grey[50]} 0%, ${theme.palette.grey[100]} 100%)`
+        }}
+      >
+        <Container maxWidth="sm">
+          <Paper
+            elevation={0}
+            sx={{
+              p: 6,
+              borderRadius: 3,
+              textAlign: 'center',
+              background: 'rgba(255, 255, 255, 0.9)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
+            }}
+          >
+            <Typography variant="h2" sx={{ mb: 1, fontSize: '4rem' }}>
+              🏠
+            </Typography>
+            <Typography variant="h5" fontWeight="bold" gutterBottom>
+              Nenhuma casa cadastrada
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+              Comece adicionando sua primeira casa
+            </Typography>
+            <Button
+              variant="contained"
+              size="large"
+              startIcon={<AddIcon />}
+              onClick={() => setAddCasaDialogOpen(true)}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 600,
+                px: 4,
+                py: 1.5,
+                background: theme.palette.gradients.heroPrimary,
+                '&:hover': {
+                  boxShadow: '0 6px 20px rgba(25, 118, 210, 0.4)'
+                }
+              }}
+            >
+              Adicionar Primeira Casa
+            </Button>
+          </Paper>
+        </Container>
+
         <AddCasaDialog
           open={addCasaDialogOpen}
           onClose={() => setAddCasaDialogOpen(false)}
-          onAdd={(nomeCasa) => handleAdicionarCasa(nomeCasa)}
+          onAdd={handleAdicionarCasa}
         />
       </Box>
-    );
+    )
   }
 
-  const numeroDeLinhasVazias = Math.max(0, 8 - (casaAtual.pessoas?.length || 0));
-
+  // Layout principal
   return (
-    <>
-      <Box sx={{ minHeight: '100vh', p: 3 }}>
-        {/* Grid de Casas com CasaCard */}
-        <Box sx={{ mb: 3 }}>
-          <Grid container spacing={2} alignItems="stretch">
-            {casas.map((casa) => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={casa.id}>
-                <CasaCard
-                  casa={{ ...casa, pessoas: casa.pessoas || [] }}
-                  isSelected={casa.id === casaSelecionadaId}
-                  onClick={() => setCasaSelecionadaId(casa.id)}
-                  onDelete={handleDeletarCasa}
-                />
-              </Grid>
-            ))}
-            {/* Card para adicionar nova casa */}
-            <Grid item xs={12} sm={6} md={4} lg={3}>
-              <Button variant="contained" onClick={() => setAddCasaDialogOpen(true)} sx={{ width: '100%', height: '100%' }}>
-                <AddIcon />&nbsp;Adicionar Casa
-              </Button>
-            </Grid>
-          </Grid>
+    <Box
+      sx={{
+        minHeight: 'calc(100vh - 80px)',
+        py: 4,
+        background: `linear-gradient(135deg, ${theme.palette.grey[50]} 0%, ${theme.palette.grey[100]} 100%)`
+      }}
+    >
+      <Container maxWidth="xl">
+        {/* Header */}
+        <Box sx={{ mb: 4 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between', 
+            mb: 1 
+          }}>
+            <Typography
+              variant="h3"
+              component="h1"
+              sx={{
+                fontWeight: 'bold',
+                background: theme.palette.gradientText.heroPrimary,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}
+            >
+              Minhas Casas
+            </Typography>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setAddCasaDialogOpen(true)}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 600,
+                background: theme.palette.gradients.heroPrimary,
+                '&:hover': {
+                  boxShadow: '0 6px 20px rgba(25, 118, 210, 0.4)'
+                }
+              }}
+            >
+              Nova Casa
+            </Button>
+          </Box>
+          <Typography variant="body1" color="text.secondary">
+            Gerencie suas casas e as pessoas que moram nelas
+          </Typography>
         </Box>
 
-        {/* Detalhes da casa selecionada */}
-        {casaAtual && (
-          <CasaDetails
-            casa={{ ...casaAtual, pessoas: casaAtual.pessoas || [] }}
-            onEditCasaNome={handleEditarCasaNome}
-            onEditPessoaNome={handleEditarPessoaNome}
-            onDeletePessoa={handleRemoverPessoa}
-            onAddPessoaClick={() => setAddPessoaDialogOpen(true)}
-          />
-        )}
-      </Box>
+        {/* Layout 2 Colunas */}
+        <Grid container spacing={3}>
+          {/* Coluna Esquerda - Grid de Casas */}
+          <Grid item xs={12} lg={5}>
+            <Grid container spacing={2}>
+              {casas.map((casa) => (
+                <Grid item xs={12} sm={6} md={6} key={casa.id}>
+                  <CasaCard
+                    casa={casa}
+                    isSelected={casa.id === casaSelecionadaId}
+                    onClick={() => setCasaSelecionadaId(casa.id)}
+                    onDelete={handleDeletarCasa}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          </Grid>
 
-      {/* Diálogo para adicionar pessoa (componente do novo frontend) */}
-      <AddPessoaDialog
-        open={addPessoaDialogOpen}
-        onClose={() => setAddPessoaDialogOpen(false)}
-        onAdd={(nomePessoa) => handleAdicionarPessoa(nomePessoa)}
-        casaNome={casaAtual?.nome}
-      />
+          {/* Coluna Direita - Detalhes */}
+          <Grid item xs={12} lg={7}>
+            {casaAtual && (
+              <CasaDetails
+                casa={casaAtual}
+                onEditCasaNome={handleEditarCasaNome}
+                onEditPessoaNome={handleEditarPessoaNome}
+                onDeletePessoa={handleRemoverPessoa}
+                onAddPessoaClick={() => setAddPessoaDialogOpen(true)}
+              />
+            )}
+          </Grid>
+        </Grid>
+      </Container>
 
-      {/* Diálogo para adicionar morador (USUARIO + associação na casa) */}
-      <AddMoradorCasaDialog
-        open={addMoradorDialogOpen}
-        onClose={() => setAddMoradorDialogOpen(false)}
-        onAdd={async ({ nome, email, senha, permissao }) => {
-          try {
-            const { addMoradorToCasa } = await import('../../api/casas')
-            await addMoradorToCasa(casaAtual.id, { nome, email, senha, permissao })
-            // Recarrega moradores desta casa
-            const pessoas = await listUsuariosByCasa(casaAtual.id)
-            const norm = (pessoas || []).map(p => ({ id: p.idUsuario, nome: p.nome, papel: p.permissao || 'Membro' }))
-              .filter(p => !!p.id)
-              .sort((a, b) => (a.nome || '').localeCompare(b.nome || ''))
-            setCasas(prev => prev.map(c => c.id === casaAtual.id ? { ...c, pessoas: norm } : c))
-          } catch (e) {
-            const msg = e?.response?.data?.message || e?.response?.data?.error || 'Erro ao criar morador'
-            alert(msg)
-          }
-        }}
-      />
-
-      {/* Diálogo para adicionar casa (componente do novo frontend) */}
+      {/* Dialogs */}
       <AddCasaDialog
         open={addCasaDialogOpen}
         onClose={() => setAddCasaDialogOpen(false)}
-        onAdd={(nomeCasa) => handleAdicionarCasa(nomeCasa)}
+        onAdd={handleAdicionarCasa}
       />
-    </>
-  );
+
+      <AddPessoaDialog
+        open={addPessoaDialogOpen}
+        onClose={() => setAddPessoaDialogOpen(false)}
+        onAdd={handleAdicionarPessoa}
+        casaNome={casaAtual?.nome}
+      />
+    </Box>
+  )
 }
 
-export default Casas;
+export default Casas

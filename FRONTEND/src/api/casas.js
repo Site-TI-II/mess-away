@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// Use o prefixo /api para evitar diferenças de comportamento nas rotas duplicadas
 const API = 'http://localhost:4567/api/casas';
 
 const axiosInstance = axios.create({
@@ -10,19 +9,21 @@ const axiosInstance = axios.create({
   }
 });
 
-// Lista casas; quando contaId for fornecido, retorna somente as casas vinculadas à conta (ou todas se a conta for admin)
+// Lista casas por conta
 export const listarCasas = (contaId) => axiosInstance.get(API, {
   params: contaId ? { contaId } : undefined
 });
 
-// Cria casa; quando idConta for fornecido, vincula a casa criada à conta (CASA.id_conta)
+// Cria casa vinculada à conta
 export const criarCasa = (casa, idConta) => {
   const payload = idConta ? { ...casa, idConta } : casa;
   return axiosInstance.post(API, payload);
 };
 
+// Deletar casa
 export const deletarCasa = (id) => axiosInstance.delete(`${API}/${id}`);
 
+// Listar usuários da casa
 export const listUsuariosByCasa = async (idCasa) => {
   try {
     const response = await axiosInstance.get(`${API}/${idCasa}/usuarios`);
@@ -33,6 +34,7 @@ export const listUsuariosByCasa = async (idCasa) => {
   }
 };
 
+// Adicionar usuário existente à casa
 export const addUsuarioToCasa = async (idCasa, { idUsuario, permissao = 'Membro' }) => {
   try {
     const response = await axiosInstance.post(`${API}/${idCasa}/usuarios`, {
@@ -46,6 +48,7 @@ export const addUsuarioToCasa = async (idCasa, { idUsuario, permissao = 'Membro'
   }
 };
 
+// Criar morador novo e associar à casa
 export const addMoradorToCasa = async (idCasa, { nome, email, senha, permissao = 'Membro' }) => {
   try {
     const response = await axiosInstance.post(`${API}/${idCasa}/usuarios/create`, {
@@ -56,9 +59,7 @@ export const addMoradorToCasa = async (idCasa, { nome, email, senha, permissao =
     });
     return response.data;
   } catch (error) {
-    console.error('Erro ao criar morador da casa:', error?.response?.data || error?.message);
+    console.error('Erro ao criar morador:', error?.response?.data || error?.message);
     throw error;
   }
 };
-
-// Removido: associação por e-mail ao pedido do cliente

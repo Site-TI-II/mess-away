@@ -5,7 +5,7 @@ import { Check as CheckIcon, Delete as DeleteIcon } from '@mui/icons-material'
 
 // Cores padrão para responsáveis
 const coresPadrao = [
-  '#1976d2', '#d32f2f', '#388e3c', '#f57c00', 
+  '#1976d2', '#d32f2f', '#388e3c', '#f57c00',
   '#7b1fa2', '#0097a7', '#c2185b', '#5d4037'
 ]
 
@@ -15,7 +15,7 @@ function getCorPorIndex(index) {
 
 function TaskItem({ item, index, onComplete, onDelete, compact = false }) {
   const cor = getCorPorIndex(index)
-  
+
   return (
     <ListItem
       sx={{
@@ -103,7 +103,7 @@ function TaskItem({ item, index, onComplete, onDelete, compact = false }) {
       <Box sx={{ display: 'flex', gap: compact ? 0 : 1 }}>
         <IconButton
           size={compact ? 'small' : 'medium'}
-          onClick={() => onComplete(item.idTarefa)}
+          onClick={() => onComplete(item.id)}
           disabled={item.concluida}
           sx={{
             color: 'white',
@@ -118,7 +118,7 @@ function TaskItem({ item, index, onComplete, onDelete, compact = false }) {
 
         {!compact && (
           <IconButton
-            onClick={() => onDelete(item.idTarefa)}
+            onClick={() => onDelete(item.id)}
             sx={{
               color: 'white',
               bgcolor: 'rgba(255, 255, 255, 0.2)',
@@ -136,3 +136,5 @@ function TaskItem({ item, index, onComplete, onDelete, compact = false }) {
 }
 
 export default TaskItem
+
+

@@ -1,18 +1,12 @@
 #!/bin/bash
 # MessAway - Script de Inicialização Completa
 
-set -e  # Parar se houver erro
+set -e
 
 echo "🚀 Iniciando MessAway..."
 echo ""
 
-# Verificar se está na pasta raiz do projeto
-if [ ! -d "BACKEND" ] || [ ! -d "FRONTEND" ]; then
-    echo "❌ Erro: Execute este script da pasta raiz do projeto"
-    exit 1
-fi
-
-# 1. Verificar PostgreSQL
+# Verificar PostgreSQL
 echo "📦 Verificando PostgreSQL..."
 if ! systemctl is-active --quiet postgresql 2>/dev/null; then
     echo "   Iniciando PostgreSQL..."
@@ -21,71 +15,55 @@ if ! systemctl is-active --quiet postgresql 2>/dev/null; then
 fi
 echo "   ✅ PostgreSQL rodando"
 
-# 2. Verificar se banco existe
+# Verificar banco
 echo "🗄️  Verificando banco de dados..."
 if ! sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw gestao_casas; then
-    echo "   ⚠️  Banco não encontrado! Execute primeiro:"
-    echo "   ./BACKEND/DATABASE/install.sh"
+    echo "   ⚠️  Banco não encontrado! Execute: ./BACKEND/DATABASE/install.sh"
     exit 1
 fi
 echo "   ✅ Banco configurado"
 
-# 3. Configurar variáveis de ambiente
+# Configurar variáveis
 echo "🔧 Configurando variáveis de ambiente..."
 export MESSAWAY_DB_URL="jdbc:postgresql://localhost:5432/gestao_casas"
 export MESSAWAY_DB_USER="messaway"
 export MESSAWAY_DB_PASSWORD="messaway123"
 echo "   ✅ Variáveis configuradas"
 
-# 4. Verificar se portas estão livres
+# Verificar portas
 echo "🔍 Verificando portas..."
 if lsof -Pi :4567 -sTCP:LISTEN -t >/dev/null 2>&1; then
-    echo "   ⚠️  Porta 4567 (Backend) já está em uso"
-    echo "   Deseja matar o processo? (s/n)"
-    read -r resposta
-    if [ "$resposta" = "s" ]; then
-        sudo kill -9 $(lsof -t -i:4567)
-        echo "   ✅ Processo anterior encerrado"
-    else
-        exit 1
-    fi
+    echo "   ⚠️  Porta 4567 ocupada, matando processo..."
+    sudo kill -9 $(lsof -t -i:4567)
 fi
-
 if lsof -Pi :5173 -sTCP:LISTEN -t >/dev/null 2>&1; then
-    echo "   ⚠️  Porta 5173 (Frontend) já está em uso"
-    echo "   Deseja matar o processo? (s/n)"
-    read -r resposta
-    if [ "$resposta" = "s" ]; then
-        sudo kill -9 $(lsof -t -i:5173)
-        echo "   ✅ Processo anterior encerrado"
-    else
-        exit 1
-    fi
+    echo "   ⚠️  Porta 5173 ocupada, matando processo..."
+    sudo kill -9 $(lsof -t -i:5173)
 fi
 
-# 5. Compilar Backend (se necessário)
-if [ ! -d "BACKEND/target" ]; then
-    echo "🔨 Compilando Backend (primeira vez)..."
-    cd BACKEND
-    mvn clean install -q
-    cd ..
-    echo "   ✅ Backend compilado"
-fi
+# Criar pasta logs
+mkdir -p logs
 
-# 6. Instalar dependências Frontend (se necessário)
+# FORÇAR RECOMPILAÇÃO DO BACKEND
+echo "🔨 Recompilando Backend..."
+cd BACKEND
+mvn clean compile -q
+cd ..
+echo "   ✅ Backend recompilado"
+
+# Instalar dependências frontend se necessário
 if [ ! -d "FRONTEND/node_modules" ]; then
-    echo "📦 Instalando dependências do Frontend (primeira vez)..."
+    echo "📦 Instalando dependências do Frontend..."
     cd FRONTEND
     npm install --silent
     cd ..
-    echo "   ✅ Dependências instaladas"
 fi
 
-# 7. Criar arquivo de PIDs
+# Criar arquivo de PIDs
 PID_FILE=".messaway.pid"
 rm -f $PID_FILE
 
-# 8. Iniciar Backend
+# Iniciar Backend
 echo "🔧 Iniciando Backend..."
 cd BACKEND
 mvn exec:java > ../logs/backend.log 2>&1 &
@@ -94,23 +72,17 @@ echo $BACKEND_PID >> ../$PID_FILE
 cd ..
 echo "   ✅ Backend iniciando (PID: $BACKEND_PID)"
 
-# Aguardar backend iniciar
+# Aguardar backend
 echo "⏳ Aguardando backend iniciar..."
 for i in {1..30}; do
     if curl -s http://localhost:4567/MessAway/casas > /dev/null 2>&1; then
         echo "   ✅ Backend pronto!"
         break
     fi
-    if [ $i -eq 30 ]; then
-        echo "   ❌ Backend demorou muito para iniciar"
-        echo "   Verifique logs/backend.log"
-        kill $BACKEND_PID 2>/dev/null
-        exit 1
-    fi
     sleep 1
 done
 
-# 9. Iniciar Frontend
+# Iniciar Frontend
 echo "🎨 Iniciando Frontend..."
 cd FRONTEND
 npm run dev > ../logs/frontend.log 2>&1 &
@@ -119,11 +91,8 @@ echo $FRONTEND_PID >> ../$PID_FILE
 cd ..
 echo "   ✅ Frontend iniciando (PID: $FRONTEND_PID)"
 
-# Aguardar frontend iniciar
-echo "⏳ Aguardando frontend iniciar..."
 sleep 3
 
-# 10. Mensagem final
 echo ""
 echo "========================================="
 echo "✅ MessAway iniciado com sucesso!"
@@ -147,6 +116,5 @@ echo "   Frontend: tail -f logs/frontend.log"
 echo ""
 echo "🛑 Para parar:"
 echo "   ./stop-project.sh"
-echo "   ou: kill $BACKEND_PID $FRONTEND_PID"
 echo ""
 echo "========================================="

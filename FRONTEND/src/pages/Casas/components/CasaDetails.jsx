@@ -23,16 +23,6 @@ import {
 import { useTheme } from '@mui/material/styles'
 import PessoaItem from './PessoaItem'
 
-/**
- * CasaDetails - Detalhes completos da casa selecionada
- * 
- * Props:
- * - casa: { id, nome, imagem, pessoas }
- * - onEditCasaNome: function(casaId, novoNome)
- * - onEditPessoaNome: function(pessoaId, novoNome)
- * - onDeletePessoa: function(pessoaId)
- * - onAddPessoaClick: function
- */
 function CasaDetails({ casa, onEditCasaNome, onEditPessoaNome, onDeletePessoa, onAddPessoaClick, extraActions }) {
     const theme = useTheme()
     const [isEditingCasa, setIsEditingCasa] = useState(false)
@@ -62,7 +52,6 @@ function CasaDetails({ casa, onEditCasaNome, onEditPessoaNome, onDeletePessoa, o
         if (e.key === 'Escape') handleCancelEditCasa()
     }
 
-    // Linhas vazias para preencher até 8 pessoas
     const numeroDeLinhasVazias = Math.max(0, 8 - casa.pessoas.length)
 
     return (
@@ -78,7 +67,7 @@ function CasaDetails({ casa, onEditCasaNome, onEditPessoaNome, onDeletePessoa, o
             }}
         >
             {/* Header com Avatar e Nome */}
-                <Box
+            <Box
                 sx={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -94,10 +83,15 @@ function CasaDetails({ casa, onEditCasaNome, onEditPessoaNome, onDeletePessoa, o
                         width: 120,
                         height: 120,
                         mb: 2,
+                        bgcolor: casa.cor || theme.palette.primary.main,
+                        fontSize: '3rem',
+                        fontWeight: 'bold',
                         border: `4px solid white`,
                         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
                     }}
-                />
+                >
+                    {casa.nome.charAt(0).toUpperCase()}
+                </Avatar>
 
                 {/* Nome da Casa (editável) */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -145,17 +139,17 @@ function CasaDetails({ casa, onEditCasaNome, onEditPessoaNome, onDeletePessoa, o
                     )}
                 </Box>
 
-                                {/* Contador de Pessoas */}
+                {/* Contador de Pessoas */}
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                     {casa.pessoas.length} pessoa{casa.pessoas.length !== 1 ? 's' : ''} cadastrada{casa.pessoas.length !== 1 ? 's' : ''}
                 </Typography>
 
-                                {/* Ações extras (ex.: adicionar morador à casa) */}
-                                {extraActions && (
-                                    <Box sx={{ mt: 1 }}>
-                                        {extraActions}
-                                    </Box>
-                                )}
+                {/* Ações extras */}
+                {extraActions && (
+                    <Box sx={{ mt: 1 }}>
+                        {extraActions}
+                    </Box>
+                )}
             </Box>
 
             <Divider />
@@ -181,7 +175,7 @@ function CasaDetails({ casa, onEditCasaNome, onEditPessoaNome, onDeletePessoa, o
                                 background: 'linear-gradient(135deg, #9c27b0 0%, #ba68c8 100%)'
                             }}
                         >
-                            Adicionar Pessoa (Perfil)
+                            Adicionar Primeira Pessoa
                         </Button>
                     </Box>
                 ) : (
@@ -210,7 +204,7 @@ function CasaDetails({ casa, onEditCasaNome, onEditPessoaNome, onDeletePessoa, o
                             <Box sx={{ display: 'flex', alignItems: 'center', color: '#9c27b0' }}>
                                 <PersonAddIcon sx={{ mr: 1.5 }} />
                                 <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                                    Adicionar Pessoa (Perfil)
+                                    Adicionar Pessoa
                                 </Typography>
                             </Box>
                         </ListItemButton>
