@@ -51,33 +51,68 @@ function Dashboard() {
       }
 
       const user = JSON.parse(userJson)
-      const idConta = user?.idConta
 
-      if (!idConta) {
-        console.warn('Conta não encontrada no usuário')
-        setLoading(false)
-        return
+      // Carregar casas do usuário (via USUARIO_CASA ou idConta se existir)
+      let casasData = []
+      
+      if (user.idConta) {
+        try {
+          const casasResponse = await listarCasas(user.idConta)
+          casasData = casasResponse?.data || []
+        } catch (e) {
+          console.warn('Erro ao listar por conta:', e)
+        }
+      }
+      
+      // Fallback: listar casas por usuário
+      if (!casasData.length && user.id) {
+        try {
+          const response = await fetch(`http://localhost:4567/api/usuarios/${user.id}/casas`)
+          casasData = await response.json()
+        } catch (e) {
+          console.error('Erro ao listar casas por usuário:', e)
+        }
       }
 
-      // Carregar casas reais do banco
-      const casasResponse = await listarCasas(idConta)
-      if (casasResponse?.data) {
-        const casasComTarefas = casasResponse.data.map(casa => ({
-          id: casa.id,
-          nome: casa.nome,
-          imagem: casa.imagem,
-          // Simular contagem de tarefas (depois pode vir do backend)
-          tarefasPendentes: Math.floor(Math.random() * 15),
-          tarefasConcluidas: Math.floor(Math.random() * 20) + 10,
-          totalTarefas: 30,
-          pontos: casa.pontos || 0
+      if (casasData.length) {
+        // Carregar tarefas reais para cada casa
+        const casasComTarefas = await Promise.all(casasData.map(async (casa) => {
+          try {
+            const tarefasResponse = await fetch(`http://localhost:4567/api/casas/${casa.id}/tarefas`)
+            const tarefas = await tarefasResponse.json()
+            
+            const tarefasConcluidas = tarefas.filter(t => t.concluida === true).length
+            const tarefasPendentes = tarefas.filter(t => t.concluida === false).length
+            const totalTarefas = tarefas.length
+            
+            return {
+              id: casa.id,
+              nome: casa.nome,
+              imagem: casa.imagem,
+              tarefasPendentes,
+              tarefasConcluidas,
+              totalTarefas,
+              pontos: casa.pontos || 0
+            }
+          } catch (e) {
+            console.error(`Erro ao carregar tarefas da casa ${casa.nome}:`, e)
+            return {
+              id: casa.id,
+              nome: casa.nome,
+              imagem: casa.imagem,
+              tarefasPendentes: 0,
+              tarefasConcluidas: 0,
+              totalTarefas: 0,
+              pontos: casa.pontos || 0
+            }
+          }
         }))
 
         setCasas(casasComTarefas)
 
         // Carregar points e achievements da primeira casa
-        if (casasResponse.data.length > 0) {
-          const currentCasa = casasResponse.data[0]
+        if (casasData.length > 0) {
+          const currentCasa = casasData[0]
           setTotalPoints(currentCasa.pontos || 0)
           
           // Carregar achievements da casa
