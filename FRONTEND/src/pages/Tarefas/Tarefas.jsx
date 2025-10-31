@@ -1,7 +1,7 @@
 // src/pages/Tarefas/Tarefas.jsx
 
 import { useState, useEffect } from 'react'
-import { Box, Container, Typography, Alert, CircularProgress } from '@mui/material'
+import { Box, Container, Typography, Alert, CircularProgress, Select, MenuItem, FormControl } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import TaskForm from './components/TaskForm'
 import TaskList from './components/TaskList'
@@ -28,6 +28,7 @@ function Tarefas() {
   const [lista, setLista] = useState([])
   const [pessoas, setPessoas] = useState([])
   const [casaAtual, setCasaAtual] = useState(null)
+  const [casas, setCasas] = useState([])
 
   // Estado de carregamento e erros
   const [loading, setLoading] = useState(true)
@@ -37,6 +38,47 @@ function Tarefas() {
   useEffect(() => {
     loadInitialData()
   }, [])
+
+  const handleCasaChange = async (idCasa) => {
+    const novaCasa = casas.find(c => c.id === idCasa)
+    if (!novaCasa) return
+    
+    setCasaAtual(novaCasa)
+    setLoading(true)
+    
+    try {
+      // Recarregar dados da nova casa
+      const [tarefasResponse, pessoasResponse] = await Promise.allSettled([
+        listarTarefas(novaCasa.id),
+        listUsuariosByCasa(novaCasa.id)
+      ])
+      
+      if (tarefasResponse.status === 'fulfilled') {
+        const tarefasData = tarefasResponse.value?.data || tarefasResponse.value || []
+        setLista(Array.isArray(tarefasData) ? tarefasData : [])
+      }
+      
+      if (pessoasResponse.status === 'fulfilled') {
+        let pessoasVal = pessoasResponse.value || []
+        if (Array.isArray(pessoasVal)) {
+          const seen = new Set()
+          pessoasVal = pessoasVal.filter(p => {
+            const id = p?.idUsuario
+            if (!id) return false
+            if (seen.has(id)) return false
+            seen.add(id)
+            return true
+          })
+          pessoasVal.sort((a, b) => (a?.nome || '').localeCompare(b?.nome || ''))
+        }
+        setPessoas(pessoasVal)
+      }
+    } catch (err) {
+      console.error('Erro ao trocar de casa:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const loadInitialData = async () => {
     setLoading(true)
@@ -56,12 +98,13 @@ function Tarefas() {
 
       // 2) Casas
       const casasResponse = await listarCasas(idConta)
-      const casas = casasResponse?.data || []
-      if (!casas.length) {
+      const casasData = casasResponse?.data || []
+      if (!casasData.length) {
         setError('Nenhuma casa encontrada. Cadastre uma casa primeiro.')
         return
       }
-      const casa = casas[0]
+      setCasas(casasData)
+      const casa = casasData[0]
       setCasaAtual(casa)
 
       // 3) Dados da casa em paralelo
@@ -178,7 +221,6 @@ function Tarefas() {
   }
 
   const removerTarefaHandler = async (idTarefa) => {
-    
     try {
       await removerTarefa(casaAtual.id, idTarefa)
 
@@ -192,7 +234,6 @@ function Tarefas() {
   }
 
   const marcarComoConcluida = async (idTarefa) => {
-    
     try {
       await concluirTarefa(casaAtual.id, idTarefa)
 
@@ -231,13 +272,14 @@ function Tarefas() {
     >
       <Container maxWidth="lg">
         {/* Header */}
-        <Box sx={{ mb: 4, textAlign: 'center' }}>
+        <Box sx={{ mb: 4 }}>
           <Typography
             variant="h3"
             component="h1"
             sx={{
               fontWeight: 'bold',
-              mb: 1,
+              mb: 2,
+              textAlign: 'center',
               background: theme.palette.gradientText.heroPrimary,
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -246,9 +288,46 @@ function Tarefas() {
           >
             Gerenciador de Tarefas
           </Typography>
-          <Typography variant="body1" color="text.secondary">
-            {casaAtual ? `Casa: ${casaAtual.nome}` : 'Organize e acompanhe suas tarefas domésticas'}
-          </Typography>
+
+          {/* Seletor de Casa */}
+          {casas.length > 0 && (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: 2
+              }}
+            >
+              <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
+                Casa:
+              </Typography>
+              <FormControl sx={{ minWidth: 250 }}>
+                <Select
+                  value={casaAtual?.id || ''}
+                  onChange={(e) => handleCasaChange(e.target.value)}
+                  displayEmpty
+                  size="small"
+                  sx={{
+                    bgcolor: 'white',
+                    borderRadius: 2,
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: theme.palette.primary.main
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: theme.palette.primary.dark
+                    }
+                  }}
+                >
+                  {casas.map((casa) => (
+                    <MenuItem key={casa.id} value={casa.id}>
+                      🏠 {casa.nome}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+          )}
         </Box>
 
         {/* Formulário */}
