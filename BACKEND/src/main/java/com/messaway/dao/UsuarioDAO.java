@@ -3,6 +3,7 @@ package com.messaway.dao;
 import com.messaway.db.Database;
 import com.messaway.model.Usuario;
 
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,12 +11,13 @@ import java.util.List;
 public class UsuarioDAO {
 
     public Usuario create(Usuario usuario) throws SQLException {
-        // Database schema uses table USUARIO with columns (id_usuario, nome, email, senha)
-        String sql = "INSERT INTO USUARIO (nome, email, senha) VALUES (?, ?, ?)";
+        // NEW SCHEMA: users table with simplified structure
+        String sql = "INSERT INTO users (email, password_hash, full_name, display_name) VALUES (?, ?, ?, ?)";
         try (Connection conn = Database.connect(); PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            stmt.setString(1, usuario.getNome());
-            stmt.setString(2, usuario.getEmail());
-            stmt.setString(3, usuario.getPassword());
+            stmt.setString(1, usuario.getEmail());
+            stmt.setString(2, usuario.getPassword());
+            stmt.setString(3, usuario.getNome());
+            stmt.setString(4, usuario.getNome()); // Use same name for display
             stmt.executeUpdate();
             try (ResultSet rs = stmt.getGeneratedKeys()) {
                 if (rs.next()) {
@@ -27,12 +29,13 @@ public class UsuarioDAO {
     }
 
     public Usuario findById(long id) throws SQLException {
-        String sql = "SELECT id_usuario, nome, email, senha FROM USUARIO WHERE id_usuario = ?";
+        // NEW SCHEMA: Query users table
+        String sql = "SELECT id, email, password_hash, full_name FROM users WHERE id = ?";
         try (Connection conn = Database.connect(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new Usuario(rs.getLong("id_usuario"), rs.getString("nome"), rs.getString("email"), rs.getString("senha"));
+                    return new Usuario(rs.getLong("id"), rs.getString("full_name"), rs.getString("email"), rs.getString("password_hash"));
                 }
                 return null;
             }
@@ -40,12 +43,13 @@ public class UsuarioDAO {
     }
 
     public Usuario findByEmail(String email) throws SQLException {
-        String sql = "SELECT id_usuario, nome, email, senha FROM USUARIO WHERE email = ?";
+        // NEW SCHEMA: Query users table
+        String sql = "SELECT id, email, password_hash, full_name FROM users WHERE email = ?";
         try (Connection conn = Database.connect(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, email);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new Usuario(rs.getLong("id_usuario"), rs.getString("nome"), rs.getString("email"), rs.getString("senha"));
+                    return new Usuario(rs.getLong("id"), rs.getString("full_name"), rs.getString("email"), rs.getString("password_hash"));
                 }
                 return null;
             }
@@ -53,18 +57,20 @@ public class UsuarioDAO {
     }
 
     public List<Usuario> listAll() throws SQLException {
-        String sql = "SELECT id_usuario, nome, email, senha FROM USUARIO ORDER BY id_usuario";
+        // NEW SCHEMA: Query users table
+        String sql = "SELECT id, email, password_hash, full_name FROM users WHERE active = TRUE ORDER BY id";
         try (Connection conn = Database.connect(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
             List<Usuario> users = new ArrayList<>();
             while (rs.next()) {
-                users.add(new Usuario(rs.getLong("id_usuario"), rs.getString("nome"), rs.getString("email"), rs.getString("senha")));
+                users.add(new Usuario(rs.getLong("id"), rs.getString("full_name"), rs.getString("email"), rs.getString("password_hash")));
             }
             return users;
         }
     }
 
     public boolean update(Usuario usuario) throws SQLException {
-        String sql = "UPDATE USUARIO SET nome = ?, email = ?, senha = ? WHERE id_usuario = ?";
+        // NEW SCHEMA: Update users table
+        String sql = "UPDATE users SET full_name = ?, email = ?, password_hash = ?, last_active = CURRENT_TIMESTAMP WHERE id = ?";
         try (Connection conn = Database.connect(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, usuario.getNome());
             stmt.setString(2, usuario.getEmail());
@@ -75,7 +81,8 @@ public class UsuarioDAO {
     }
 
     public boolean delete(long id) throws SQLException {
-        String sql = "DELETE FROM USUARIO WHERE id_usuario = ?";
+        // NEW SCHEMA: Soft delete by setting active = FALSE
+        String sql = "UPDATE users SET active = FALSE WHERE id = ?";
         try (Connection conn = Database.connect(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, id);
             return stmt.executeUpdate() > 0;
@@ -83,7 +90,8 @@ public class UsuarioDAO {
     }
 
     public boolean changePasswordByEmail(String email, String newPassword) throws SQLException {
-        String sql = "UPDATE USUARIO SET senha = ? WHERE email = ?";
+        // NEW SCHEMA: Update password in users table
+        String sql = "UPDATE users SET password_hash = ?, last_active = CURRENT_TIMESTAMP WHERE email = ?";
         try (Connection conn = Database.connect(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, newPassword);
             stmt.setString(2, email);

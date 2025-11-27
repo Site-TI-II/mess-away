@@ -32,8 +32,21 @@ public class UsuarioController {
                 res.status(201);
                 return gson.toJson(created);
             } catch (SQLException e) {
+                // Handle duplicate email error gracefully
+                if (e.getMessage().contains("duplicate key value violates unique constraint") && 
+                    e.getMessage().contains("users_email_key")) {
+                    res.status(409); // Conflict
+                    return gson.toJson(java.util.Map.of(
+                        "error", "email_already_exists", 
+                        "message", "Este email já está em uso. Por favor, use outro email."
+                    ));
+                }
+                // Handle other database errors
                 res.status(500);
-                return gson.toJson(java.util.Map.of("error", "DB error: " + e.getMessage()));
+                return gson.toJson(java.util.Map.of(
+                    "error", "database_error", 
+                    "message", "Erro interno do servidor. Tente novamente."
+                ));
             }
         });
 
@@ -97,8 +110,8 @@ public class UsuarioController {
                     return gson.toJson(java.util.Map.of("error", "missing_fields"));
                 }
 
-                // Create user
-                String insertUserSql = "INSERT INTO USUARIO (nome, email, senha) VALUES (?, ?, ?) RETURNING id_usuario";
+                // Create user - NEW SCHEMA: users table
+                String insertUserSql = "INSERT INTO users (full_name, email, password_hash) VALUES (?, ?, ?) RETURNING id";
                 int createdUserId;
                 try (PreparedStatement pst = conn.prepareStatement(insertUserSql)) {
                     pst.setString(1, nome);
@@ -129,13 +142,15 @@ public class UsuarioController {
                         createProfile = contaObj.get("createProfile").getAsBoolean();
                     }
 
-                    // If no idCasa provided, create a new CASA and set its id to the conta
+                    // If no idCasa provided, create a new house and set its id to the conta
                     if (idCasa == null) {
-                        String insertCasaSql = "INSERT INTO CASA (nome, descricao, endereco) VALUES (?, ?, ?) RETURNING id_casa";
+                        // NEW SCHEMA: Insert into houses table with owner_id
+                        String insertCasaSql = "INSERT INTO houses (name, description, address, owner_id) VALUES (?, ?, ?, ?) RETURNING id";
                         try (PreparedStatement pstCasa = conn.prepareStatement(insertCasaSql)) {
                             pstCasa.setString(1, contaNome);
                             pstCasa.setString(2, null);
                             pstCasa.setString(3, null);
+                            pstCasa.setInt(4, createdUserId); // Set the created user as owner
                             try (ResultSet rsCasa = pstCasa.executeQuery()) {
                                 if (rsCasa.next()) {
                                     idCasa = rsCasa.getInt(1);
@@ -193,8 +208,21 @@ public class UsuarioController {
                 return gson.toJson(java.util.Map.of("usuario", createdUser, "idConta", createdContaId));
             } catch (SQLException e) {
                 e.printStackTrace();
+                // Handle duplicate email error gracefully
+                if (e.getMessage().contains("duplicate key value violates unique constraint") && 
+                    e.getMessage().contains("users_email_key")) {
+                    res.status(409); // Conflict
+                    return gson.toJson(java.util.Map.of(
+                        "error", "email_already_exists", 
+                        "message", "Este email já está em uso. Por favor, use outro email."
+                    ));
+                }
+                // Handle other database errors
                 res.status(500);
-                return gson.toJson(java.util.Map.of("error", "DB error: " + e.getMessage()));
+                return gson.toJson(java.util.Map.of(
+                    "error", "database_error", 
+                    "message", "Erro interno do servidor. Tente novamente."
+                ));
             }
         };
         // Support both /MessAway and /api paths (backward compatibility)

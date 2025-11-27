@@ -5,15 +5,19 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class Database {
-    private static final String URL = System.getenv("MESSAWAY_DB_URL") != null 
-        ? System.getenv("MESSAWAY_DB_URL") 
-        : "jdbc:postgresql://localhost:5432/postgres";
-    private static final String USER = System.getenv("MESSAWAY_DB_USER") != null 
-        ? System.getenv("MESSAWAY_DB_USER") 
-        : "postgres";
-    private static final String PASSWORD = System.getenv("MESSAWAY_DB_PASSWORD") != null 
-        ? System.getenv("MESSAWAY_DB_PASSWORD") 
-        : "postgres";
+    // Azure PostgreSQL Connection - Updated for optimized schema
+    private static final String URL = System.getenv("AZURE_DB_HOST") != null 
+        ? String.format("jdbc:postgresql://%s:%s/%s?sslmode=require", 
+            System.getenv("AZURE_DB_HOST"), 
+            System.getenv("AZURE_DB_PORT"),
+            System.getenv("AZURE_DB_NAME"))
+        : "jdbc:postgresql://messawaypuc.postgres.database.azure.com:5432/postgres?sslmode=require";
+    private static final String USER = System.getenv("AZURE_DB_USER") != null 
+        ? System.getenv("AZURE_DB_USER") 
+        : "messADM";
+    private static final String PASSWORD = System.getenv("AZURE_DB_PASSWORD") != null 
+        ? System.getenv("AZURE_DB_PASSWORD") 
+        : "MinionBobo3";
 
     public static Connection connect() throws SQLException {
         return getConnection();
