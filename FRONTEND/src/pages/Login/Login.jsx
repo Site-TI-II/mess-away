@@ -71,14 +71,11 @@ function Login() {
     }
 
     try {
-  const user = await login(formData.email, formData.password)
-      // Normalize and store the actual usuario object in localStorage (backend returns { authenticated, usuario })
-      const storedUser = user && user.usuario ? user.usuario : user
-      if (user && user.idConta) storedUser.idConta = user.idConta
-      if (user && user.casaId) storedUser.casaId = user.casaId
-  if (user && typeof user.isAdmin !== 'undefined') storedUser.isAdmin = user.isAdmin
-      console.log('Login successful, user:', storedUser)
-      localStorage.setItem('user', JSON.stringify(storedUser))
+      const user = await login(formData.email, formData.password)
+      console.log('Login response from backend:', user)
+      // Backend retorna o objeto Conta diretamente com idConta - salvar como está
+      localStorage.setItem('user', JSON.stringify(user))
+      console.log('User saved to localStorage:', user)
       // Se o login for bem-sucedido, redireciona para Casas
       navigate('/casas')
     } catch (err) {

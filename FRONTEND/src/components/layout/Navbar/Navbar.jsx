@@ -89,8 +89,31 @@ function Navbar() {
         if (!cancelled) setHasCasas(false)
       }
     }
+
     checkCasas()
-    return () => { cancelled = true }
+
+    // Escutar eventos de criação de casa
+    const handleCasaCreated = () => {
+      console.log('Casa criada - atualizando navbar')
+      // Força atualização imediata do menu
+      setHasCasas(true)
+      checkCasas() // Confirma com o backend
+    }
+
+    // Escutar eventos de registro de usuário
+    const handleUserRegistered = () => {
+      console.log('Usuário registrado - atualizando navbar')
+      checkCasas() // Verificar se o registro criou casa automaticamente
+    }
+
+    window.addEventListener('casaCreated', handleCasaCreated)
+    window.addEventListener('userRegistered', handleUserRegistered)
+    
+    return () => { 
+      cancelled = true
+      window.removeEventListener('casaCreated', handleCasaCreated)
+      window.removeEventListener('userRegistered', handleUserRegistered)
+    }
   }, [currentUser])
 
   const getUserDisplayName = (user) => {

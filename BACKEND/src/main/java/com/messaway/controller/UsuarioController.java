@@ -110,100 +110,32 @@ public class UsuarioController {
                     return gson.toJson(java.util.Map.of("error", "missing_fields"));
                 }
 
-                // Create user - NEW SCHEMA: users table
-                String insertUserSql = "INSERT INTO users (full_name, email, password_hash) VALUES (?, ?, ?) RETURNING id";
-                int createdUserId;
-                try (PreparedStatement pst = conn.prepareStatement(insertUserSql)) {
+
+
+                // Simple registration always creates CONTA (and function handles users table)
+                String insertContaSql = "INSERT INTO CONTA (nome, email, senha) VALUES (?, ?, ?) RETURNING id_conta";
+                Integer createdContaId;
+                try (PreparedStatement pst = conn.prepareStatement(insertContaSql)) {
                     pst.setString(1, nome);
                     pst.setString(2, email);
                     pst.setString(3, password);
                     try (ResultSet rs = pst.executeQuery()) {
                         if (rs.next()) {
-                            createdUserId = rs.getInt(1);
+                            createdContaId = rs.getInt(1);
                         } else {
                             conn.rollback();
                             res.status(500);
-                            return gson.toJson(java.util.Map.of("error", "failed_create_user"));
+                            return gson.toJson(java.util.Map.of("error", "failed_create_conta"));
                         }
                     }
                 }
 
-                Integer createdContaId = null;
-                boolean createProfile = false;
-                // If request asks to create conta
-                if (body.has("conta") && body.getAsJsonObject("conta").has("create") && body.getAsJsonObject("conta").get("create").getAsBoolean()) {
-                    JsonObject contaObj = body.getAsJsonObject("conta");
-                    String contaNome = contaObj.has("nome") ? contaObj.get("nome").getAsString() : nome + "'s conta";
-                    String contaEmail = contaObj.has("email") ? contaObj.get("email").getAsString() : email;
-                    String contaSenha = contaObj.has("senha") ? contaObj.get("senha").getAsString() : password;
-                    Integer idCasa = contaObj.has("idCasa") && !contaObj.get("idCasa").isJsonNull() ? contaObj.get("idCasa").getAsInt() : null;
-                    // optional flag to create initial profile mapping
-                    if (contaObj.has("createProfile")) {
-                        createProfile = contaObj.get("createProfile").getAsBoolean();
-                    }
 
-                    // If no idCasa provided, create a new house and set its id to the conta
-                    if (idCasa == null) {
-                        // NEW SCHEMA: Insert into houses table with owner_id
-                        String insertCasaSql = "INSERT INTO houses (name, description, address, owner_id) VALUES (?, ?, ?, ?) RETURNING id";
-                        try (PreparedStatement pstCasa = conn.prepareStatement(insertCasaSql)) {
-                            pstCasa.setString(1, contaNome);
-                            pstCasa.setString(2, null);
-                            pstCasa.setString(3, null);
-                            pstCasa.setInt(4, createdUserId); // Set the created user as owner
-                            try (ResultSet rsCasa = pstCasa.executeQuery()) {
-                                if (rsCasa.next()) {
-                                    idCasa = rsCasa.getInt(1);
-                                } else {
-                                    conn.rollback();
-                                    res.status(500);
-                                    return gson.toJson(java.util.Map.of("error", "failed_create_casa"));
-                                }
-                            }
-                        }
-                    }
-
-                    String insertContaSql = "INSERT INTO CONTA (nome, email, senha, id_casa) VALUES (?, ?, ?, ?) RETURNING id_conta";
-                    try (PreparedStatement pst = conn.prepareStatement(insertContaSql)) {
-                        pst.setString(1, contaNome);
-                        pst.setString(2, contaEmail);
-                        pst.setString(3, contaSenha);
-                        if (idCasa != null) pst.setInt(4, idCasa); else pst.setNull(4, Types.INTEGER);
-                        try (ResultSet rs = pst.executeQuery()) {
-                            if (rs.next()) {
-                                createdContaId = rs.getInt(1);
-                            } else {
-                                conn.rollback();
-                                res.status(500);
-                                return gson.toJson(java.util.Map.of("error", "failed_create_conta"));
-                            }
-                        }
-                    }
-                } else if (body.has("idConta")) {
-                    createdContaId = body.get("idConta").getAsInt();
-                }
-
-                // If we have a conta id (created or existing), associate user to conta
-                if (createdContaId != null && (createProfile || body.has("apelido"))) {
-                    String apelido = body.has("apelido") ? body.get("apelido").getAsString() : nome;
-                    String cor = body.has("cor") ? body.get("cor").getAsString() : null;
-                    String permissao = body.has("permissao") ? body.get("permissao").getAsString() : "morador";
-
-                    String insertMapSql = "INSERT INTO CONTA_USUARIO (id_conta, id_usuario, apelido, cor, permissao) VALUES (?, ?, ?, ?, ?)";
-                    try (PreparedStatement pst = conn.prepareStatement(insertMapSql)) {
-                        pst.setInt(1, createdContaId);
-                        pst.setInt(2, createdUserId);
-                        pst.setString(3, apelido);
-                        pst.setString(4, cor);
-                        pst.setString(5, permissao);
-                        pst.executeUpdate();
-                    }
-                }
 
                 conn.commit();
 
-                // Return created user (fetching via DAO to map fields)
-                Usuario createdUser = new Usuario(createdUserId, nome, email, password);
+                // Return created user
+                Usuario createdUser = new Usuario(createdContaId, nome, email, password);
                 res.status(201);
                 
                 // Use HashMap instead of Map.of() to allow null values
@@ -213,20 +145,45 @@ public class UsuarioController {
                 return gson.toJson(response);
             } catch (SQLException e) {
                 e.printStackTrace();
-                // Handle duplicate email error gracefully
-                if (e.getMessage().contains("duplicate key value violates unique constraint") && 
-                    e.getMessage().contains("users_email_key")) {
-                    res.status(409); // Conflict
+                System.err.println("SQL Error: " + e.getMessage());
+                System.err.println("SQL State: " + e.getSQLState());
+                
+                // Handle duplicate email errors specifically
+                String errorMsg = e.getMessage();
+                if (errorMsg.contains("duplicate key value violates unique constraint")) {
+                    if (errorMsg.contains("users_email_key") || errorMsg.contains("email")) {
+                        // Extract email from error message if possible
+                        String conflictEmail = "email desconhecido"; // fallback
+                        if (errorMsg.contains("Key (email)=(") && errorMsg.contains(") already exists")) {
+                            try {
+                                int start = errorMsg.indexOf("Key (email)=(") + 13;
+                                int end = errorMsg.indexOf(")", start);
+                                conflictEmail = errorMsg.substring(start, end);
+                            } catch (Exception ignored) {}
+                        }
+                        
+                        res.status(409); // Conflict
+                        return gson.toJson(java.util.Map.of(
+                            "error", "email_already_exists", 
+                            "message", "O email '" + conflictEmail + "' já está em uso. Por favor, use outro email."
+                        ));
+                    }
+                }
+                
+                // Handle other specific database errors
+                if (errorMsg.contains("foreign key") || errorMsg.contains("violates foreign key constraint")) {
+                    res.status(400);
                     return gson.toJson(java.util.Map.of(
-                        "error", "email_already_exists", 
-                        "message", "Este email já está em uso. Por favor, use outro email."
+                        "error", "invalid_reference", 
+                        "message", "Referência inválida nos dados."
                     ));
                 }
-                // Handle other database errors
+                
+                // Generic database error
                 res.status(500);
                 return gson.toJson(java.util.Map.of(
                     "error", "database_error", 
-                    "message", "Erro interno do servidor. Tente novamente."
+                    "message", "Erro interno do servidor: " + e.getMessage()
                 ));
             }
         };

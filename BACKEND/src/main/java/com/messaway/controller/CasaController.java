@@ -78,18 +78,24 @@ public class CasaController {
                 System.out.println("Casa objeto: " + gson.toJson(casa));
 
                 try (Connection conn = Database.connect()) {
-                    // Novo modelo: multi-casas por conta (CASA.id_conta)
+                    // O idConta é igual ao user_id devido ao schema unificado
+                    Long ownerId = idContaFromBody;
+                    
+                    // Se não tiver idConta, usar um padrão
+                    if (ownerId == null) {
+                        ownerId = 2L; // User padrão (Test User)
+                    }
+                    
+                    System.out.println("Creating house with owner_id: " + ownerId + " from idConta: " + idContaFromBody);
+                    
+                    // Insere direto na tabela houses
                     PreparedStatement stmt = conn.prepareStatement(
-                            "INSERT INTO CASA (nome, descricao, endereco, ativo, data_criacao, id_conta) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, ?)",
+                            "INSERT INTO houses (name, description, address, owner_id, active, created_at) VALUES (?, ?, ?, ?, true, CURRENT_TIMESTAMP)",
                             Statement.RETURN_GENERATED_KEYS);
                     stmt.setString(1, casa.getNome());
                     stmt.setString(2, casa.getDescricao() != null ? casa.getDescricao() : "");
                     stmt.setString(3, casa.getEndereco() != null ? casa.getEndereco() : "");
-                    stmt.setBoolean(4, true);
-                    if (idContaFromBody != null)
-                        stmt.setLong(5, idContaFromBody);
-                    else
-                        stmt.setNull(5, Types.INTEGER);
+                    stmt.setLong(4, ownerId);
 
                     System.out.println("Executando query: INSERT INTO CASA (nome, descricao, endereco, ativo) VALUES ('"
                             + casa.getNome() + "', '"
@@ -167,15 +173,8 @@ public class CasaController {
                         }
                     }
                 } else {
-                    // Default: list all active casas
-                    ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM CASA WHERE ativo = true");
-                    while (rs.next()) {
-                        Casa casa = new Casa(rs.getLong("id_casa"), rs.getString("nome"));
-                        casa.setDescricao(rs.getString("descricao"));
-                        casa.setEndereco(rs.getString("endereco"));
-                        casa.setAtivo(rs.getBoolean("ativo"));
-                        casas.add(casa);
-                    }
+                    // Sem contaId: retorna lista vazia (segurança - não expor casas de outros)
+                    // Retorna array vazio ao invés de todas as casas
                 }
             }
             return gson.toJson(casas);
@@ -252,17 +251,23 @@ public class CasaController {
                 System.out.println("Casa objeto: " + gson.toJson(casa));
 
                 try (Connection conn = Database.connect()) {
+                    // O idConta é igual ao user_id devido ao schema unificado
+                    Long ownerId = idContaFromBody;
+                    
+                    // Se não tiver idConta, usar um padrão
+                    if (ownerId == null) {
+                        ownerId = 2L; // User padrão (Test User)
+                    }
+                    
+                    System.out.println("Creating house with owner_id: " + ownerId + " from idConta: " + idContaFromBody);
+                    
                     PreparedStatement stmt = conn.prepareStatement(
-                            "INSERT INTO CASA (nome, descricao, endereco, ativo, data_criacao, id_conta) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, ?)",
+                            "INSERT INTO houses (name, description, address, owner_id, active, created_at) VALUES (?, ?, ?, ?, true, CURRENT_TIMESTAMP)",
                             Statement.RETURN_GENERATED_KEYS);
                     stmt.setString(1, casa.getNome());
                     stmt.setString(2, casa.getDescricao() != null ? casa.getDescricao() : "");
                     stmt.setString(3, casa.getEndereco() != null ? casa.getEndereco() : "");
-                    stmt.setBoolean(4, true);
-                    if (idContaFromBody != null)
-                        stmt.setLong(5, idContaFromBody);
-                    else
-                        stmt.setNull(5, Types.INTEGER);
+                    stmt.setLong(4, ownerId);
 
                     int affectedRows = stmt.executeUpdate();
                     if (affectedRows == 0) {
@@ -296,6 +301,7 @@ public class CasaController {
         get("/api/casas", (req, res) -> {
             List<Casa> casas = new ArrayList<>();
             String contaIdParam = req.queryParams("contaId");
+            System.out.println("GET /api/casas - contaId received: " + contaIdParam);
             try (Connection conn = Database.connect()) {
                 if (contaIdParam != null && !contaIdParam.isEmpty()) {
                     boolean isAdmin = false;
@@ -335,14 +341,8 @@ public class CasaController {
                         }
                     }
                 } else {
-                    ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM CASA WHERE ativo = true");
-                    while (rs.next()) {
-                        Casa casa = new Casa(rs.getLong("id_casa"), rs.getString("nome"));
-                        casa.setDescricao(rs.getString("descricao"));
-                        casa.setEndereco(rs.getString("endereco"));
-                        casa.setAtivo(rs.getBoolean("ativo"));
-                        casas.add(casa);
-                    }
+                    // Sem contaId: retorna lista vazia (segurança - não expor casas de outros)
+                    // Retorna array vazio ao invés de todas as casas
                 }
             }
             return gson.toJson(casas);

@@ -34,6 +34,8 @@ function Casas() {
     setLoading(true)
     try {
       const user = JSON.parse(localStorage.getItem('user') || 'null')
+      console.log('DEBUG loadCasas - user from localStorage:', user)
+      console.log('DEBUG loadCasas - user?.idConta:', user?.idConta)
       const res = await listarCasas(user?.idConta)
       const casasBase = (res.data || []).map(c => ({ ...c, pessoas: [] }))
       
@@ -84,9 +86,14 @@ function Casas() {
     
     try {
       const user = JSON.parse(localStorage.getItem('user') || 'null')
+      console.log('DEBUG criarCasa - user from localStorage:', user)
+      console.log('DEBUG criarCasa - user?.idConta:', user?.idConta)
       await criarCasa({ nome }, user?.idConta)
       setAddCasaDialogOpen(false)
       await loadCasas()
+      
+      // Notificar o Navbar que uma casa foi criada
+      window.dispatchEvent(new CustomEvent('casaCreated'))
     } catch (error) {
       console.error('Erro ao criar casa:', error)
       alert('Erro ao criar casa. Tente novamente.')

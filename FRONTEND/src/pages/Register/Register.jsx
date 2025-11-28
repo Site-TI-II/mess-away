@@ -100,11 +100,18 @@ function Register() {
         return res.json()
       })
       .then((data) => {
+        console.log('Register response from backend:', data)
         // Save user and account in localStorage so other pages can use it
         if (data.usuario) {
           // backend returns { usuario, idConta }
-          localStorage.setItem('user', JSON.stringify({ ...data.usuario, idConta: data.idConta || null }))
+          const userToSave = { ...data.usuario, idConta: data.idConta || null }
+          console.log('User being saved to localStorage:', userToSave)
+          localStorage.setItem('user', JSON.stringify(userToSave))
         }
+        
+        // Notificar o Navbar que o usuário foi criado (pode ter casa automática)
+        window.dispatchEvent(new CustomEvent('userRegistered'))
+        
         // Redirect to Casas tab/page
         navigate('/casas')
       })
