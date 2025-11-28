@@ -120,21 +120,46 @@ const AchievementsSection = ({ achievements = [], totalPoints = 0 }) => {
           />
         </Box>
 
-        {/* Achievements Grid */}
+        {/* Achievements Grid with Horizontal Scroll */}
         {sortedAchievements.length > 0 ? (
-          <Grid container spacing={2}>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 2,
+              overflowX: 'scroll',
+              overflowY: 'hidden',
+              pb: 2,
+              scrollbarWidth: 'thin',
+              scrollbarColor: `${theme.palette.primary.main} ${theme.palette.grey[200]}`,
+              '&::-webkit-scrollbar': {
+                height: 10,
+                display: 'block',
+              },
+              '&::-webkit-scrollbar-track': {
+                backgroundColor: theme.palette.grey[200],
+                borderRadius: 5,
+              },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor: theme.palette.primary.main,
+                borderRadius: 5,
+                '&:hover': {
+                  backgroundColor: theme.palette.primary.dark,
+                },
+              },
+            }}
+          >
             {sortedAchievements.map((achievement) => {
               const achievementTier = getAchievementTier(achievement.requirementValue || 0);
               
               return (
-                <Grid item xs={4} key={achievement.id || achievement.idAchievement}>
+                <Box key={achievement.id || achievement.idAchievement} sx={{ minWidth: 150, maxWidth: 150, flex: '0 0 auto' }}>
                   <Tooltip 
                     title={
                       <Box>
                         <Typography variant="body2" fontWeight="bold">{achievement.name}</Typography>
                         <Typography variant="caption">{achievement.description}</Typography>
                         <Typography variant="caption" display="block" mt={0.5}>
-                          {achievement.requirementValue} pontos necessários
+                          +{achievement.requirementValue} pontos obtidos
                         </Typography>
                       </Box>
                     }
@@ -199,10 +224,10 @@ const AchievementsSection = ({ achievements = [], totalPoints = 0 }) => {
                       </Typography>
                     </Paper>
                   </Tooltip>
-                </Grid>
+                </Box>
               );
             })}
-          </Grid>
+          </Box>
         ) : (
           <Box 
             sx={{ 

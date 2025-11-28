@@ -45,6 +45,148 @@ public class TarefaController {
         
         // GET: Buscar estatísticas semanais de uma casa
         get("/api/casas/:id/stats/weekly", TarefaController::buscarEstatisticasSemanais);
+        
+        // GET: Buscar conquistas da casa
+        get("/api/casas/:id/conquistas", TarefaController::buscarConquistasDaCasa);
+    }
+
+    private static Object buscarConquistasDaCasa(Request req, Response res) {
+        try {
+            long idCasa = Long.parseLong(req.params(":id"));
+            List<Map<String, Object>> conquistas = new ArrayList<>();
+
+            try (Connection conn = Database.connect()) {
+                // Buscar estatísticas da casa para determinar conquistas
+                String sql = """
+                    SELECT 
+                        COUNT(*) FILTER (WHERE t.status = 'completed') as totalConcluidas,
+                        COUNT(DISTINCT DATE(t.completed_at)) FILTER (WHERE t.status = 'completed' AND t.completed_at >= CURRENT_DATE - INTERVAL '7 days') as diasConsecutivos,
+                        COUNT(*) FILTER (WHERE t.status = 'completed' AND t.completed_at >= CURRENT_DATE - INTERVAL '7 days') as concluidasEstaSemana,
+                        MAX(t.completed_at) as ultimaConclusao
+                    FROM tasks t
+                    JOIN rooms r ON t.room_id = r.id
+                    JOIN houses h ON r.house_id = h.id
+                    WHERE h.id = ?
+                """;
+
+                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                    stmt.setLong(1, idCasa);
+                    ResultSet rs = stmt.executeQuery();
+
+                    if (rs.next()) {
+                        int totalConcluidas = rs.getInt("totalConcluidas");
+                        int diasConsecutivos = rs.getInt("diasConsecutivos");
+                        int concluidasEstaSemana = rs.getInt("concluidasEstaSemana");
+
+                        // Conquista: Primeira tarefa
+                        if (totalConcluidas >= 1) {
+                            Map<String, Object> conquista = new HashMap<>();
+                            conquista.put("id", 1);
+                            conquista.put("name", "Primeira Tarefa!");
+                            conquista.put("description", "Complete sua primeira tarefa");
+                            conquista.put("icon", "🎯");
+                            conquista.put("requirementValue", 10);
+                            conquistas.add(conquista);
+                        }
+
+                        // Conquista: 5 tarefas
+                        if (totalConcluidas >= 5) {
+                            Map<String, Object> conquista = new HashMap<>();
+                            conquista.put("id", 2);
+                            conquista.put("name", "Começando Bem!");
+                            conquista.put("description", "Complete 5 tarefas");
+                            conquista.put("icon", "⭐");
+                            conquista.put("requirementValue", 50);
+                            conquistas.add(conquista);
+                        }
+
+                        // Conquista: 10 tarefas
+                        if (totalConcluidas >= 10) {
+                            Map<String, Object> conquista = new HashMap<>();
+                            conquista.put("id", 3);
+                            conquista.put("name", "Produtivo!");
+                            conquista.put("description", "Complete 10 tarefas");
+                            conquista.put("icon", "🚀");
+                            conquista.put("requirementValue", 100);
+                            conquistas.add(conquista);
+                        }
+
+                        // Conquista: 25 tarefas
+                        if (totalConcluidas >= 25) {
+                            Map<String, Object> conquista = new HashMap<>();
+                            conquista.put("id", 4);
+                            conquista.put("name", "Semana Produtiva!");
+                            conquista.put("description", "Complete 25 tarefas");
+                            conquista.put("icon", "🔥");
+                            conquista.put("requirementValue", 250);
+                            conquistas.add(conquista);
+                        }
+
+                        // Conquista: Streak de 3 dias
+                        if (diasConsecutivos >= 3) {
+                            Map<String, Object> conquista = new HashMap<>();
+                            conquista.put("id", 5);
+                            conquista.put("name", "Continuidade!");
+                            conquista.put("description", "Complete tarefas por 3 dias seguidos");
+                            conquista.put("icon", "📅");
+                            conquista.put("requirementValue", 150);
+                            conquistas.add(conquista);
+                        }
+
+                        // Conquista: Streak de 7 dias
+                        if (diasConsecutivos >= 7) {
+                            Map<String, Object> conquista = new HashMap<>();
+                            conquista.put("id", 6);
+                            conquista.put("name", "Semana Completa!");
+                            conquista.put("description", "Mantenha a continuidade por 7 dias");
+                            conquista.put("icon", "🏆");
+                            conquista.put("requirementValue", 350);
+                            conquistas.add(conquista);
+                        }
+
+                        // Conquista: 50 tarefas
+                        if (totalConcluidas >= 50) {
+                            Map<String, Object> conquista = new HashMap<>();
+                            conquista.put("id", 7);
+                            conquista.put("name", "Meio Centenário!");
+                            conquista.put("description", "Complete 50 tarefas no total");
+                            conquista.put("icon", "💎");
+                            conquista.put("requirementValue", 500);
+                            conquistas.add(conquista);
+                        }
+
+                        // Conquista: 100 tarefas
+                        if (totalConcluidas >= 100) {
+                            Map<String, Object> conquista = new HashMap<>();
+                            conquista.put("id", 8);
+                            conquista.put("name", "Centenário!");
+                            conquista.put("description", "Complete 100 tarefas no total");
+                            conquista.put("icon", "👑");
+                            conquista.put("requirementValue", 1000);
+                            conquistas.add(conquista);
+                        }
+
+                        // Conquista: Semana intensa (20+ tarefas em 7 dias)
+                        if (concluidasEstaSemana >= 20) {
+                            Map<String, Object> conquista = new HashMap<>();
+                            conquista.put("id", 9);
+                            conquista.put("name", "Semana Intensa!");
+                            conquista.put("description", "Complete 20+ tarefas em uma semana");
+                            conquista.put("icon", "⚡");
+                            conquista.put("requirementValue", 200);
+                            conquistas.add(conquista);
+                        }
+                    }
+                }
+
+                res.status(200);
+                return gson.toJson(conquistas);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.status(500);
+            return gson.toJson(new ErrorResponse("Erro ao buscar conquistas: " + e.getMessage()));
+        }
     }
 
     private static Object buscarEstatisticasSemanais(Request req, Response res) {

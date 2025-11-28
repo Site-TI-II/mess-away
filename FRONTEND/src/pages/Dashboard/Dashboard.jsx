@@ -117,15 +117,16 @@ function Dashboard() {
           setCasaAtualId(currentCasa.id)
           setTotalPoints(currentCasa.pontos || 0)
           
-          // Carregar achievements da casa
+          // Carregar conquistas automáticas da casa
           try {
-            const achievementsResponse = await getCasaAchievements(currentCasa.id)
-            if (Array.isArray(achievementsResponse?.data)) {
-              setAchievements(achievementsResponse.data)
-            } else if (Array.isArray(achievementsResponse)) {
-              setAchievements(achievementsResponse)
-            } else {
-              setAchievements([])
+            const conquistasResponse = await fetch(`http://localhost:4567/api/casas/${currentCasa.id}/conquistas`)
+            if (conquistasResponse.ok) {
+              const conquistasData = await conquistasResponse.json()
+              setAchievements(Array.isArray(conquistasData) ? conquistasData : [])
+              
+              // Calcular total de pontos das conquistas
+              const pontosTotais = conquistasData.reduce((sum, c) => sum + (c.requirementValue || 0), 0)
+              setTotalPoints(pontosTotais)
             }
           } catch (achieveError) {
             console.error('Erro ao carregar conquistas da casa:', achieveError)
