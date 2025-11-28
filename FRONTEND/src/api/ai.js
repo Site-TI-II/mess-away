@@ -102,6 +102,72 @@ export const generateTaskSuggestions = async ({ casaName, roomName, count = 3 })
 };
 
 /**
+ * Classify task priority automatically using AI
+ * @param {Object} taskData - Task information
+ * @param {string} taskData.taskName - Name/title of the task
+ * @param {string} [taskData.description] - Optional description
+ * @param {string} [taskData.dueDate] - Optional due date
+ * @param {number} [taskData.casaId] - Optional casa ID for context
+ * @returns {Promise} AI classification with priority (1-3) and reasoning
+ */
+export const classifyTaskPriority = async ({ taskName, description, dueDate, casaId }) => {
+  try {
+    const response = await axios.post(`${API_URL}/ai/classify-task`, {
+      taskName,
+      description,
+      dueDate,
+      casaId
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error classifying task priority:', error);
+    if (error.response?.data) {
+      return error.response.data;
+    }
+    throw error;
+  }
+};
+
+/**
+ * Get intelligent recommendations for task optimization
+ * @param {Object} taskData - Task information
+ * @param {string} taskData.taskName - Name/title of the task
+ * @param {string} [taskData.description] - Optional description
+ * @param {number} [taskData.priority] - Current priority (1-3)
+ * @param {string} [taskData.room] - Room/comodo name
+ * @returns {Promise} AI recommendations and tips
+ */
+export const getTaskRecommendations = async ({ taskName, description, priority, room }) => {
+  const prompt = `
+    Tarefa: "${taskName}"
+    Descrição: ${description || 'Não informada'}
+    Prioridade: ${priority || 'Não definida'}
+    Cômodo: ${room || 'Não especificado'}
+    
+    Dê 2-3 dicas rápidas e práticas para executar esta tarefa de forma eficiente.
+  `;
+  
+  const context = `
+    Você é um especialista em organização doméstica. Dê conselhos práticos e específicos.
+    Considere tempo necessário, frequência ideal, e melhores práticas.
+    Seja direto e útil em português do Brasil.
+  `;
+  
+  try {
+    const response = await generateAIResponse({
+      prompt,
+      context,
+      maxTokens: 200,
+      temperature: 0.6
+    });
+    return response;
+  } catch (error) {
+    console.error('Error getting task recommendations:', error);
+    throw error;
+  }
+};
+
+/**
  * Hook to check if AI features are available
  * @returns {Promise<boolean>} True if AI is configured and ready
  */
