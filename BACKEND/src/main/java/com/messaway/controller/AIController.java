@@ -72,9 +72,9 @@ public class AIController {
                     : 0;
 
                 AIRequest request = new AIRequest();
-                request.setContext("You are a helpful home management assistant. Provide brief, actionable insights.");
+                request.setContext("Você é um assistente prestativo de gerenciamento doméstico. Forneça insights breves e práticos em português do Brasil.");
                 request.setPrompt(String.format(
-                    "Casa '%s' has %d total tasks with %d completed. Give a brief, encouraging insight about their progress (max 2 sentences).",
+                    "A casa '%s' tem %d tarefas totais com %d concluídas. Dê um insight breve e encorajador sobre o progresso deles (máximo 2 frases).",
                     casaName, totalTasks, completedTasks
                 ));
                 request.setMaxTokens(150);

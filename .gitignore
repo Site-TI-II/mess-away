@@ -1,2 +1,4 @@
 logs/
 .messaway.pid
+BACKEND/.env
+.env
