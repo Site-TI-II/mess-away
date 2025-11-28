@@ -52,7 +52,7 @@ public class ContaController {
                             rs.getString("nome"),
                             rs.getString("email"),
                             rs.getString("senha"),
-                            rs.getTimestamp("data_cadastro"),
+                            rs.getTimestamp("data_criacao"),
                             rs.getObject("id_casa") != null ? rs.getInt("id_casa") : null,
                             rs.getBoolean("ativo")
                         );

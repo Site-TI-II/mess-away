@@ -6,29 +6,41 @@ set -e
 echo "🚀 Iniciando MessAway..."
 echo ""
 
-# Verificar PostgreSQL
-echo "📦 Verificando PostgreSQL..."
-if ! systemctl is-active --quiet postgresql 2>/dev/null; then
-    echo "   Iniciando PostgreSQL..."
-    sudo systemctl start postgresql
-    sleep 2
-fi
-echo "   ✅ PostgreSQL rodando"
+# Verificar autenticação Azure
+echo "🔧 Configurando Azure AAD Authentication..."
 
-# Verificar banco
-echo "🗄️  Verificando banco de dados..."
-if ! sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw gestao_casas; then
-    echo "   ⚠️  Banco não encontrado! Execute: ./BACKEND/DATABASE/install.sh"
+# Verificar se Azure CLI está logado
+if ! az account show > /dev/null 2>&1; then
+    echo "   ⚠️  Azure CLI não está logado! Execute: az login"
     exit 1
 fi
-echo "   ✅ Banco configurado"
+echo "   ✅ Azure CLI autenticado"
 
-# Configurar variáveis
-echo "🔧 Configurando variáveis de ambiente..."
-export MESSAWAY_DB_URL="jdbc:postgresql://localhost:5432/gestao_casas"
-export MESSAWAY_DB_USER="messaway"
-export MESSAWAY_DB_PASSWORD="messaway123"
-echo "   ✅ Variáveis configuradas"
+# Configurar variáveis de ambiente do Azure
+echo "🔑 Configurando variáveis Azure PostgreSQL..."
+export PGHOST=messawaypuc.postgres.database.azure.com
+export PGUSER=732307@sga.pucminas.br
+export PGPORT=5432
+export PGDATABASE=postgres
+
+# Obter token AAD
+echo "   Obtendo token de acesso..."
+export PGPASSWORD="$(az account get-access-token --resource https://ossrdbms-aad.database.windows.net --query accessToken --output tsv)"
+
+# Configurar para o Java também
+export AZURE_DB_HOST=$PGHOST
+export AZURE_DB_PORT=$PGPORT
+export AZURE_DB_NAME=$PGDATABASE  
+export AZURE_DB_USER=$PGUSER
+export AZURE_DB_PASSWORD=$PGPASSWORD
+
+if [ -n "$PGPASSWORD" ]; then
+    echo "   ✅ Token AAD obtido com sucesso"
+else
+    echo "   ❌ Erro ao obter token AAD"
+    exit 1
+fi
+echo "   ✅ Variáveis Azure configuradas"
 
 # Verificar portas
 echo "🔍 Verificando portas..."

@@ -79,15 +79,11 @@ function Register() {
       return
     }
 
-    // Build payload to create user and a conta (account)
+    // Build payload to match backend expectations
     const payload = {
       nome: formData.name,
       email: formData.email,
-      password: formData.password,
-      conta: {
-        create: true,
-        nome: `${formData.name}'s casa`
-      }
+      password: formData.password
     }
 
   // Use centralized API_URL and /MessAway path

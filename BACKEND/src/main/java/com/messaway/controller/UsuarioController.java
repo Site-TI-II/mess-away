@@ -205,7 +205,12 @@ public class UsuarioController {
                 // Return created user (fetching via DAO to map fields)
                 Usuario createdUser = new Usuario(createdUserId, nome, email, password);
                 res.status(201);
-                return gson.toJson(java.util.Map.of("usuario", createdUser, "idConta", createdContaId));
+                
+                // Use HashMap instead of Map.of() to allow null values
+                java.util.Map<String, Object> response = new java.util.HashMap<>();
+                response.put("usuario", createdUser);
+                response.put("idConta", createdContaId);
+                return gson.toJson(response);
             } catch (SQLException e) {
                 e.printStackTrace();
                 // Handle duplicate email error gracefully
