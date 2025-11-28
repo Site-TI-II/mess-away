@@ -26,4 +26,23 @@ public class ContaDAO {
             }
         }
     }
+
+    /**
+     * Update user password with a new hashed password
+     * @param idConta The account ID
+     * @param hashedPassword The new hashed password
+     * @return true if update was successful, false otherwise
+     * @throws SQLException if database error occurs
+     */
+    public boolean updatePassword(int idConta, String hashedPassword) throws SQLException {
+        String sql = "UPDATE CONTA SET senha = ? WHERE id_conta = ?";
+
+        try (Connection conn = Database.connect(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, hashedPassword);
+            stmt.setInt(2, idConta);
+
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+        }
+    }
 }

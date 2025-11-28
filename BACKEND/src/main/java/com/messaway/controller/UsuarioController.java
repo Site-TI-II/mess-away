@@ -78,10 +78,27 @@ public class UsuarioController {
         // trocar senha por email (simples, sem token)
         post("/MessAway/usuarios/trocar-senha", (req, res) -> {
             try {
-                var body = gson.fromJson(req.body(), java.util.Map.class);
+                java.util.Map<String, Object> body = gson.fromJson(req.body(), java.util.Map.class);
                 String email = (String) body.get("email");
                 String newPassword = (String) body.get("newPassword");
-                boolean ok = dao.changePasswordByEmail(email, newPassword);
+                
+                // Validate password strength
+                if (!com.messaway.util.PasswordUtil.isValidPassword(newPassword)) {
+                    res.status(400);
+                    return gson.toJson(java.util.Map.of("success", false, "error", "A senha deve ter pelo menos 6 caracteres"));
+                }
+
+                // Hash the new password
+                String hashedPassword = com.messaway.util.PasswordUtil.hashPassword(newPassword);
+                
+                // Find user by email and update password
+                Conta conta = contaDAO.findByEmail(email);
+                if (conta == null) {
+                    res.status(404);
+                    return gson.toJson(java.util.Map.of("success", false, "error", "Usuário não encontrado"));
+                }
+                
+                boolean ok = contaDAO.updatePassword(conta.getIdConta(), hashedPassword);
                 if (ok) {
                     res.status(200);
                     return gson.toJson(java.util.Map.of("status", "ok"));
@@ -110,7 +127,14 @@ public class UsuarioController {
                     return gson.toJson(java.util.Map.of("error", "missing_fields"));
                 }
 
+                // Validate password strength
+                if (!com.messaway.util.PasswordUtil.isValidPassword(password)) {
+                    res.status(400);
+                    return gson.toJson(java.util.Map.of("error", "password_too_weak", "message", "A senha deve ter pelo menos 6 caracteres"));
+                }
 
+                // Hash the password securely
+                String hashedPassword = com.messaway.util.PasswordUtil.hashPassword(password);
 
                 // Simple registration always creates CONTA (and function handles users table)
                 String insertContaSql = "INSERT INTO CONTA (nome, email, senha) VALUES (?, ?, ?) RETURNING id_conta";
@@ -118,7 +142,7 @@ public class UsuarioController {
                 try (PreparedStatement pst = conn.prepareStatement(insertContaSql)) {
                     pst.setString(1, nome);
                     pst.setString(2, email);
-                    pst.setString(3, password);
+                    pst.setString(3, hashedPassword);
                     try (ResultSet rs = pst.executeQuery()) {
                         if (rs.next()) {
                             createdContaId = rs.getInt(1);
@@ -206,7 +230,31 @@ public class UsuarioController {
 
                 Conta u = contaDAO.findByEmail(email);
 
-                if (u == null || !password.equals(u.getSenha())) {
+                if (u == null) {
+                    res.status(401);
+                    return gson.toJson(java.util.Map.of("authenticated", false));
+                }
+
+                // Check if password is hashed (new) or plain text (legacy)
+                boolean passwordMatches;
+                if (com.messaway.util.PasswordUtil.isBCryptHash(u.getSenha())) {
+                    // New secure hashed password
+                    passwordMatches = com.messaway.util.PasswordUtil.verifyPassword(password, u.getSenha());
+                } else {
+                    // Legacy plain text password - migrate to hash after successful login
+                    passwordMatches = password.equals(u.getSenha());
+                    if (passwordMatches) {
+                        // Migrate to hashed password
+                        try {
+                            String hashedPassword = com.messaway.util.PasswordUtil.hashPassword(password);
+                            contaDAO.updatePassword(u.getIdConta(), hashedPassword);
+                        } catch (Exception e) {
+                            System.err.println("Failed to migrate password to hash for user: " + email);
+                        }
+                    }
+                }
+
+                if (!passwordMatches) {
                     res.status(401);
                     return gson.toJson(java.util.Map.of("authenticated", false));
                 }

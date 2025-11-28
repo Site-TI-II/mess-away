@@ -43,6 +43,13 @@
         <artifactId>slf4j-simple</artifactId>
         <version>1.7.36</version>
     </dependency>
+
+    <!-- BCrypt for secure password hashing -->
+    <dependency>
+        <groupId>org.mindrot</groupId>
+        <artifactId>jbcrypt</artifactId>
+        <version>0.4</version>
+    </dependency>
   </dependencies>
 
   <build>
