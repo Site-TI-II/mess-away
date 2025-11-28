@@ -1,3 +1,5 @@
+# TI2 - Puc Minas - Grupo 23
+# Professores: Sandro Jerônimo de Almeida \ Luciana Mara Freitas Diniz
 # Mess Away
 
 O Mess Away é um aplicativo inovador projetado para ajudar na organização e gerenciamento de tarefas domésticas.
