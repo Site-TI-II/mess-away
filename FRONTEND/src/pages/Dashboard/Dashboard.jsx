@@ -34,6 +34,7 @@ function Dashboard() {
   const [loading, setLoading] = useState(false)
   const [achievements, setAchievements] = useState([])
   const [totalPoints, setTotalPoints] = useState(0)
+  const [casaAtualId, setCasaAtualId] = useState(null)
 
   useEffect(() => {
     loadDashboardData()
@@ -110,9 +111,10 @@ function Dashboard() {
 
         setCasas(casasComTarefas)
 
-        // Carregar points e achievements da primeira casa
+        // Carregar points, achievements, alertas e stats da primeira casa
         if (casasData.length > 0) {
           const currentCasa = casasData[0]
+          setCasaAtualId(currentCasa.id)
           setTotalPoints(currentCasa.pontos || 0)
           
           // Carregar achievements da casa
@@ -128,6 +130,28 @@ function Dashboard() {
           } catch (achieveError) {
             console.error('Erro ao carregar conquistas da casa:', achieveError)
             setAchievements([])
+          }
+
+          // Carregar alertas da casa
+          try {
+            const alertsResponse = await fetch(`http://localhost:4567/api/casas/${currentCasa.id}/alertas`)
+            if (alertsResponse.ok) {
+              const alertsData = await alertsResponse.json()
+              setAlerts(Array.isArray(alertsData) ? alertsData : [])
+            }
+          } catch (alertError) {
+            console.error('Erro ao carregar alertas:', alertError)
+          }
+
+          // Carregar estatísticas semanais
+          try {
+            const statsResponse = await fetch(`http://localhost:4567/api/casas/${currentCasa.id}/stats/weekly`)
+            if (statsResponse.ok) {
+              const statsData = await statsResponse.json()
+              setWeeklyData(statsData)
+            }
+          } catch (statsError) {
+            console.error('Erro ao carregar estatísticas semanais:', statsError)
           }
         }
       }

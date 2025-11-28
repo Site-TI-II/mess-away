@@ -39,6 +39,179 @@ public class TarefaController {
 
         // PUT: Marcar tarefa como concluída
         put("/api/tarefas/:id/concluir", TarefaController::concluirTarefa);
+        
+        // GET: Buscar alertas de tarefas de uma casa
+        get("/api/casas/:id/alertas", TarefaController::buscarAlertasDaCasa);
+        
+        // GET: Buscar estatísticas semanais de uma casa
+        get("/api/casas/:id/stats/weekly", TarefaController::buscarEstatisticasSemanais);
+    }
+
+    private static Object buscarEstatisticasSemanais(Request req, Response res) {
+        try {
+            long idCasa = Long.parseLong(req.params(":id"));
+            Map<String, Object> stats = new HashMap<>();
+
+            try (Connection conn = Database.connect()) {
+                // Buscar tarefas da última semana
+                String sql = """
+                    SELECT 
+                        COUNT(*) FILTER (WHERE t.status = 'completed' AND t.completed_at >= CURRENT_DATE - INTERVAL '7 days') as tarefasConcluidas,
+                        COUNT(*) FILTER (WHERE t.created_at >= CURRENT_DATE - INTERVAL '7 days') as tarefasTotais,
+                        COUNT(DISTINCT DATE(t.completed_at)) FILTER (WHERE t.status = 'completed' AND t.completed_at >= CURRENT_DATE - INTERVAL '7 days') as diasAtivos
+                    FROM tasks t
+                    JOIN rooms r ON t.room_id = r.id
+                    JOIN houses h ON r.house_id = h.id
+                    WHERE h.id = ?
+                """;
+
+                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                    stmt.setLong(1, idCasa);
+                    ResultSet rs = stmt.executeQuery();
+
+                    if (rs.next()) {
+                        int concluidas = rs.getInt("tarefasConcluidas");
+                        int totais = rs.getInt("tarefasTotais");
+                        int diasAtivos = rs.getInt("diasAtivos");
+                        
+                        // Se não houver tarefas criadas esta semana, considerar total como 40 (média)
+                        if (totais == 0) {
+                            totais = 40;
+                        }
+
+                        stats.put("tarefasConcluidas", concluidas);
+                        stats.put("tarefasTotais", totais);
+                        stats.put("streak", diasAtivos);
+                        stats.put("conquistasRecentes", new ArrayList<>()); // Placeholder para conquistas
+                    }
+                }
+
+                res.status(200);
+                return gson.toJson(stats);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.status(500);
+            return gson.toJson(new ErrorResponse("Erro ao buscar estatísticas: " + e.getMessage()));
+        }
+    }
+
+    private static Object buscarAlertasDaCasa(Request req, Response res) {
+        try {
+            long idCasa = Long.parseLong(req.params(":id"));
+            List<Map<String, Object>> alertas = new ArrayList<>();
+
+            try (Connection conn = Database.connect()) {
+                // Buscar tarefas atrasadas e que vencem hoje
+                String sql = """
+                    SELECT 
+                        t.id as id,
+                        t.title as titulo,
+                        t.description as descricao,
+                        t.due_date as dataVencimento,
+                        t.status as status,
+                        t.priority as prioridade,
+                        u.full_name as responsavel,
+                        r.name as comodo,
+                        EXTRACT(DAY FROM (CURRENT_TIMESTAMP - t.due_date)) as diasAtrasado
+                    FROM tasks t
+                    JOIN rooms r ON t.room_id = r.id
+                    JOIN houses h ON r.house_id = h.id
+                    LEFT JOIN users u ON t.assigned_user_id = u.id
+                    WHERE h.id = ?
+                    AND t.status != 'completed'
+                    AND t.due_date IS NOT NULL
+                    AND (
+                        t.due_date < CURRENT_TIMESTAMP 
+                        OR DATE(t.due_date) = CURRENT_DATE
+                    )
+                    ORDER BY 
+                        CASE 
+                            WHEN t.due_date < CURRENT_TIMESTAMP THEN 1
+                            ELSE 2
+                        END,
+                        t.due_date ASC
+                """;
+
+                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                    stmt.setLong(1, idCasa);
+                    ResultSet rs = stmt.executeQuery();
+
+                    // Contadores para agregação
+                    int tarefasAtrasadas = 0;
+                    int tarefasVencemHoje = 0;
+                    List<String> tarefasCriticas = new ArrayList<>();
+
+                    while (rs.next()) {
+                        Timestamp dataVencimento = rs.getTimestamp("dataVencimento");
+                        long diasAtrasado = rs.getLong("diasAtrasado");
+                        String titulo = rs.getString("titulo");
+                        
+                        if (diasAtrasado > 0) {
+                            tarefasAtrasadas++;
+                            if (diasAtrasado >= 5) {
+                                tarefasCriticas.add(titulo + " (há " + diasAtrasado + " dias)");
+                            }
+                        } else {
+                            tarefasVencemHoje++;
+                        }
+                    }
+
+                    // Criar alertas agregados
+                    // Alerta crítico: tarefas muito atrasadas
+                    if (!tarefasCriticas.isEmpty()) {
+                        Map<String, Object> alerta = new HashMap<>();
+                        alerta.put("id", 1);
+                        alerta.put("type", "critical");
+                        alerta.put("title", tarefasCriticas.size() + " tarefa" + (tarefasCriticas.size() > 1 ? "s" : "") + " muito atrasada" + (tarefasCriticas.size() > 1 ? "s" : ""));
+                        alerta.put("description", tarefasCriticas.get(0));
+                        alerta.put("timestamp", new Timestamp(System.currentTimeMillis()));
+                        alertas.add(alerta);
+                    }
+
+                    // Alerta crítico: outras tarefas atrasadas
+                    if (tarefasAtrasadas > tarefasCriticas.size()) {
+                        Map<String, Object> alerta = new HashMap<>();
+                        alerta.put("id", 2);
+                        alerta.put("type", "critical");
+                        int outras = tarefasAtrasadas - tarefasCriticas.size();
+                        alerta.put("title", outras + " tarefa" + (outras > 1 ? "s" : "") + " atrasada" + (outras > 1 ? "s" : ""));
+                        alerta.put("description", "Verifique suas tarefas pendentes");
+                        alerta.put("timestamp", new Timestamp(System.currentTimeMillis()));
+                        alertas.add(alerta);
+                    }
+
+                    // Alerta de aviso: tarefas que vencem hoje
+                    if (tarefasVencemHoje > 0) {
+                        Map<String, Object> alerta = new HashMap<>();
+                        alerta.put("id", 3);
+                        alerta.put("type", "warning");
+                        alerta.put("title", tarefasVencemHoje + " tarefa" + (tarefasVencemHoje > 1 ? "s" : "") + " vence" + (tarefasVencemHoje > 1 ? "m" : "") + " hoje");
+                        alerta.put("description", "Complete antes do fim do dia");
+                        alerta.put("timestamp", new Timestamp(System.currentTimeMillis()));
+                        alertas.add(alerta);
+                    }
+
+                    // Se não houver alertas, adicionar mensagem positiva
+                    if (alertas.isEmpty()) {
+                        Map<String, Object> alerta = new HashMap<>();
+                        alerta.put("id", 4);
+                        alerta.put("type", "success");
+                        alerta.put("title", "Tudo em dia!");
+                        alerta.put("description", "Nenhuma tarefa atrasada");
+                        alerta.put("timestamp", new Timestamp(System.currentTimeMillis()));
+                        alertas.add(alerta);
+                    }
+                }
+
+                res.status(200);
+                return gson.toJson(alertas);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.status(500);
+            return gson.toJson(new ErrorResponse("Erro ao buscar alertas: " + e.getMessage()));
+        }
     }
 
     private static Object listarTarefasDaCasa(Request req, Response res) {
