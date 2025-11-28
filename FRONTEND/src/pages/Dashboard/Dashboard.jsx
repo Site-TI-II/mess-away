@@ -9,6 +9,7 @@ import AlertsSection from './components/AlertsSection'
 import QuickActionsSection from './components/QuickActionsSection'
 import MotivationalSection from './components/MotivationalSection'
 import AchievementsSection from './components/AchievementsSection'
+import AIInsightSection from './components/AIInsightSection'
 import { listarCasas } from '../../api/casas'
 import { getCasaAchievements } from '../../api/achievements'
 
@@ -35,6 +36,7 @@ function Dashboard() {
   const [achievements, setAchievements] = useState([])
   const [totalPoints, setTotalPoints] = useState(0)
   const [casaAtualId, setCasaAtualId] = useState(null)
+  const [casaAtual, setCasaAtual] = useState(null)
 
   useEffect(() => {
     loadDashboardData()
@@ -115,6 +117,7 @@ function Dashboard() {
         if (casasData.length > 0) {
           const currentCasa = casasData[0]
           setCasaAtualId(currentCasa.id)
+          setCasaAtual(currentCasa)
           setTotalPoints(currentCasa.pontos || 0)
           
           // Carregar conquistas automáticas da casa
@@ -212,6 +215,13 @@ function Dashboard() {
           {/* Progresso Semanal - 8 colunas (2/3) */}
           <Grid item xs={12} md={8}>
             <MotivationalSection weeklyData={weeklyData} />
+          </Grid>
+        </Grid>
+
+        {/* 3.5. AI Insights Section */}
+        <Grid container spacing={3} sx={{ mb: 3 }}>
+          <Grid item xs={12}>
+            <AIInsightSection casa={casaAtual} weeklyData={weeklyData} />
           </Grid>
         </Grid>
 

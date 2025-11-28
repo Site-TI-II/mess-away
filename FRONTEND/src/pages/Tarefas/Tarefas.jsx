@@ -7,6 +7,7 @@ import TaskForm from './components/TaskForm'
 import TaskList from './components/TaskList'
 import DailyTasksCard from './components/DailyTasksCard'
 import StatisticsCard from './components/StatisticsCard'
+import AITaskInsights from './components/AITaskInsights'
 
 // API imports
 import { listarTarefas, criarTarefa, concluirTarefa, removerTarefa } from '../../api/tarefas'
@@ -368,6 +369,9 @@ function Tarefas() {
 
           {/* Coluna Direita - Cards Laterais */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Insights de IA - Novo */}
+            <AITaskInsights lista={lista} casaNome={casaAtual?.nome} />
+            
             <DailyTasksCard lista={lista} onComplete={marcarComoConcluida} />
             <StatisticsCard lista={lista} />
           </Box>
