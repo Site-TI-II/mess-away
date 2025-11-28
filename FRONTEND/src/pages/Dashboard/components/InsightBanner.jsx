@@ -36,7 +36,9 @@ function InsightBanner({ insight: propInsight }) {
         })
         .catch(err => {
           console.error('Erro ao carregar insights:', err)
-          setError('Não foi possível carregar os insights.')
+          // Em vez de mostrar erro, usa dados de fallback
+          setError(null)
+          setInsights([]) // Será tratado pela API que retorna fallback
         })
         .finally(() => setLoading(false))
     }

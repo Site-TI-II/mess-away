@@ -74,4 +74,4 @@ public class Usuario {
     public void setIdConta(Integer idConta) {
         this.idConta = idConta;
     }
-}
+} 
