@@ -62,6 +62,7 @@ function AIInsightSection({ casa, weeklyData }) {
 
     try {
       const response = await generateCasaInsight({
+        casaId: casa.id,
         casaName: casa.nome,
         totalTasks: weeklyData.tarefasTotais || 0,
         completedTasks: weeklyData.tarefasConcluidas || 0

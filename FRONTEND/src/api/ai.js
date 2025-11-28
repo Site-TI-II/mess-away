@@ -49,16 +49,18 @@ export const generateAIResponse = async ({ prompt, context, maxTokens, temperatu
 };
 
 /**
- * Generate smart insight for a casa
+ * Generate smart insight for a casa with detailed analysis
  * @param {Object} casaData - Casa information
+ * @param {number} casaData.casaId - ID of the casa
  * @param {string} casaData.casaName - Name of the casa
  * @param {number} casaData.totalTasks - Total number of tasks
  * @param {number} casaData.completedTasks - Number of completed tasks
  * @returns {Promise} AI-generated insight
  */
-export const generateCasaInsight = async ({ casaName, totalTasks, completedTasks }) => {
+export const generateCasaInsight = async ({ casaId, casaName, totalTasks, completedTasks }) => {
   try {
     const response = await axios.post(`${API_URL}/ai/casa-insight`, {
+      casaId,
       casaName,
       totalTasks,
       completedTasks
