@@ -41,7 +41,7 @@ function Navbar() {
   }
 
   const menuItems = [
-    { text: 'Home', path: '/' },
+    ...(!currentUser ? [{ text: 'Home', path: '/' }] : []),
     ...(currentUser ? [{ text: 'Casas', path: '/casas' }] : []),
     ...(currentUser && hasCasas ? [
       { text: 'Tarefas', path: '/tarefas' },
