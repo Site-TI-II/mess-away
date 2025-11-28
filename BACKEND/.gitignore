@@ -35,3 +35,6 @@ build/
 backend.pid
 backend.log
 server.log
+
+### Environment Variables ###
+.env
