@@ -1,5 +1,8 @@
-# TI2 - Puc Minas - Grupo 23
-# Professores: Sandro Jerônimo de Almeida \ Luciana Mara Freitas Diniz
+# TI2 - Puc Minas - Professores: Sandro Jerônimo de Almeida \ Luciana Mara Freitas Diniz
+#Grupo 23
+| Daniela Pinheiro
+| Leonardo Araújo
+| Guilherme França
 # Mess Away
 
 O Mess Away é um aplicativo inovador projetado para ajudar na organização e gerenciamento de tarefas domésticas.
