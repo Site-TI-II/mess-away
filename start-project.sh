@@ -34,6 +34,19 @@ export AZURE_DB_NAME=$PGDATABASE
 export AZURE_DB_USER=$PGUSER
 export AZURE_DB_PASSWORD=$PGPASSWORD
 
+# Configurar API Key da IA (Anthropic)
+if [ -f "BACKEND/.env" ]; then
+    echo "🤖 Carregando configuração de IA..."
+    export ANTHROPIC_API_KEY=$(grep ANTHROPIC_API_KEY BACKEND/.env | cut -d '=' -f2)
+    if [ -n "$ANTHROPIC_API_KEY" ]; then
+        echo "   ✅ API Key da IA carregada"
+    else
+        echo "   ⚠️  ANTHROPIC_API_KEY não encontrada no .env"
+    fi
+else
+    echo "   ⚠️  Arquivo BACKEND/.env não encontrado"
+fi
+
 if [ -n "$PGPASSWORD" ]; then
     echo "   ✅ Token AAD obtido com sucesso"
 else
